@@ -1,0 +1,18 @@
+[submodule "blaze/third_party/glfw"]
+	path = blaze/third_party/glfw
+	url = https://github.com/glfw/glfw.git
+[submodule "blaze/third_party/VulkanMemoryAllocator"]
+	path = blaze/third_party/VulkanMemoryAllocator
+	url = https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git
+[submodule "blaze/third_party/imgui"]
+	path = blaze/third_party/imgui
+	url = https://github.com/ocornut/imgui.git
+[submodule "blaze/third_party/glm"]
+	path = blaze/third_party/glm
+	url = https://github.com/g-truc/glm.git
+[submodule "blaze/third_party/range-v3"]
+	path = blaze/third_party/range-v3
+	url = https://github.com/ericniebler/range-v3.git
+[submodule "blaze/third_party/spdlog"]
+	path = blaze/third_party/spdlog
+	url = https://github.com/gabime/spdlog.git

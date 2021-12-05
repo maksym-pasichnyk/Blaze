@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "format": "cpp",
+        "type_traits": "cpp",
+        "vector": "cpp",
+        "list": "cpp"
+    }
+}

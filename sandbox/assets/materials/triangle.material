@@ -1,0 +1,21 @@
+{
+    "stages": [
+        {
+            "file": "shaders/triangle.vert.spv",
+            "type": "vertex",
+            "entry": "main"
+        },
+        {
+            "file": "shaders/triangle.frag.spv",
+            "type": "fragment",
+            "entry": "main"
+        }
+    ],
+    "topology": "triangle_list",
+    "cull_mode": "back",
+    "front_face": "clockwise",
+    "line_width": 1.0,
+    "attachments": [
+        {}
+    ]
+}
