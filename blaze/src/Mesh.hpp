@@ -1,6 +1,13 @@
 #pragma once
 
 #include "GraphicsBuffer.hpp"
+#include <glm/fwd.hpp>
+#include <vector>
+
+struct SubMesh {
+    glm::i32 indexCount;
+    glm::i32 indexOffset;
+};
 
 struct Mesh {
     void setVertexBufferParams(int count, size_t elementSize) {
@@ -52,10 +59,25 @@ struct Mesh {
         return _indexCount;
     }
 
+    void setSubmeshCount(int count) {
+        _submeshes.clear();
+        _submeshes.resize(count);
+    }
+
+    void setSubmesh(int index, const SubMesh& submesh) {
+        _submeshes.at(index) = submesh;
+    }
+
+    [[nodiscard]] auto getSubmesh(int index) const -> SubMesh {
+        return _submeshes.at(index);
+    }
+
 private:
     GraphicsBuffer _vertexBuffer{};
     GraphicsBuffer _indexBuffer{};
 
     int _vertexCount = 0;
     int _indexCount = 0;
+
+    std::vector<SubMesh> _submeshes;
 };

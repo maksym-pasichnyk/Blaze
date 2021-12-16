@@ -10,7 +10,7 @@
 
 struct Blaze {
     struct Engine;
-    struct App {
+    struct Application {
         virtual void Init() = 0;
         virtual void Destroy() = 0;
         virtual void Update() = 0;
@@ -23,8 +23,5 @@ struct Blaze {
     static auto GetLogicalDevice() -> vk::Device;
     static auto GetMemoryResource() -> VmaAllocator;
 
-    static void Start(const std::string& title, int width, int height, bool resizable, App&& app) {
-        Start(title, width, height, resizable, app);
-    }
-    static void Start(const std::string& title, int width, int height, bool resizable, App& app);
+    static auto CreateApplication() -> std::unique_ptr<Application>;
 };

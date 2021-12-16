@@ -19,7 +19,7 @@ struct UserInterface {
     void setDisplaySize(const glm::ivec2& size);
     void setDisplayScale(const glm::vec2& scale);
     void setMousePosition(const glm::vec2& pos);
-    void SetMousePressed(int button, bool flag);
+    void setMousePressed(int button, bool flag);
 
     void begin();
     void end();

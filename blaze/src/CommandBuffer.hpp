@@ -9,6 +9,7 @@ struct CommandBuffer {
     friend struct CommandPool;
 
     void drawMesh(const Mesh& mesh, const Material& material);
+    void drawMesh(const Mesh& mesh, const Material& material, int submeshIndex);
     void clearRenderTarget(const glm::vec4& color, float depth, float stencil);
     
     auto operator*() const -> vk::CommandBuffer {

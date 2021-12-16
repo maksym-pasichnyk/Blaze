@@ -92,7 +92,7 @@ static auto mainImage(const glm::vec2& fragCoord) -> glm::vec4 {
     return glm::vec4(c, 1.0f);
 }
 
-struct Game : Blaze::App {
+struct Game : Blaze::Application {
     Mesh _mesh;
     Material _material;
     Texture2D _texture;
@@ -224,6 +224,6 @@ struct Game : Blaze::App {
     }
 };
 
-void Start(int argc, char** argv) {
-    Blaze::Start("Sandbox", 800, 600, false, Game{});
+auto Blaze::CreateApplication() -> std::unique_ptr<Application> {
+    return std::make_unique<Game>();
 }

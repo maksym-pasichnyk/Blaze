@@ -1,13 +1,14 @@
 #pragma once
 
+#include <array>
 #include <string>
 #include <vector>
 #include <memory>
 #include <variant>
 #include <optional>
+#include <Input.hpp>
 #include <glm/vec2.hpp>
 #include <vulkan/vulkan.hpp>
-#include <util/internal_ptr.hpp>
 
 struct GLFWwindow;
 struct Display {
@@ -24,8 +25,12 @@ public:
     auto hasFocus() const-> bool;
     auto getMousePosition() const -> glm::vec2;
     void setMousePosition(const glm::vec2& pos);
-    auto getMousePressed(int button) const -> bool;
+    auto getMousePressed(MouseButton button) const -> bool;
+    auto getKeyPressed(KeyCode keycode) const -> bool;
 
 private:
+    std::array<int, 5> mouseButtonMapping;
+    std::array<int, 256> keyCodeMapping;
+
     GLFWwindow* _window;
 };

@@ -11,8 +11,7 @@
 struct VulkanRenderer {
     VulkanSwapchain swapchain;
 
-    explicit VulkanRenderer(VulkanGfxDevice& device) : swapchain(device) {
-    }
+    explicit VulkanRenderer(VulkanGfxDevice& device) : swapchain(device) {}
 };
 
 static std::unique_ptr<Display> display;
@@ -20,6 +19,7 @@ static std::unique_ptr<VulkanGfxDevice> device;
 static std::unique_ptr<VulkanRenderer> renderer;
 static std::unique_ptr<Input> input;
 static std::unique_ptr<UserInterface> ui;
+static std::unique_ptr<Blaze::Engine> engine;
 
 auto GetDisplay() -> Display& {
     return *display;
@@ -51,22 +51,6 @@ using TimePoint = Clock::time_point;
 struct Blaze::Engine {
     TimePoint lastTime;
 
-    Engine(const std::string& title, int width, int height, bool resizable) {
-        display = std::make_unique<Display>(title, width, height, resizable);
-        input = std::make_unique<Input>();
-        device = std::make_unique<VulkanGfxDevice>(*display);
-        renderer = std::make_unique<VulkanRenderer>(GetGfxDevice());
-        ui = std::make_unique<UserInterface>(renderer->swapchain.getFrameCount());
-    }
-
-    ~Engine() {
-        ui.reset();
-        renderer.reset();
-        input.reset();
-        device.reset();
-        display.reset();
-    }
-
     auto ShouldQuit() -> bool {
         return display->shouldClose();
     }
@@ -87,17 +71,17 @@ struct Blaze::Engine {
 
     }
 
-    void Update(Blaze::App& app) {
-        ui->setMousePosition(display->getMousePosition());
+    void Update(Blaze::Application & app) {
+        input->Update();
+
         ui->setDisplayScale(display->getScale());
         ui->setDisplaySize(display->getSize());
         ui->setDeltaTime(Time::getDeltaTime());
 
-        for (int i = 0; i < 5; i++) {
-            ui->SetMousePressed(i, display->getMousePressed(i));
-        }
-
-        input->_update();
+        ui->setMousePosition(input->getMousePosition());
+        ui->setMousePressed(0, display->getMousePressed(MouseButton::Left));
+        ui->setMousePressed(1, display->getMousePressed(MouseButton::Right));
+        ui->setMousePressed(2, display->getMousePressed(MouseButton::Middle));
 
         app.Update();
     }
@@ -106,7 +90,7 @@ struct Blaze::Engine {
 
     }
 
-    void IssueRenderingCommands(Blaze::App& app) {
+    void IssueRenderingCommands(Blaze::Application & app) {
         ui->begin();
         app.DrawUI();
         ui->end();
@@ -117,7 +101,7 @@ struct Blaze::Engine {
         renderer->swapchain.present();
     }
 
-    void Run(Blaze::App& app) {
+    void Run(Blaze::Application & app) {
         app.Init();
 
         lastTime = Clock::now();
@@ -134,14 +118,20 @@ struct Blaze::Engine {
     }
 };
 
-void Blaze::Start(const std::string& title, int width, int height, bool resizable, App& app) {
-    auto engine = Engine{title, width, height, resizable};
-    engine.Run(app);
-}
-
-extern void Start(int argc, char* argv[]);
-
 auto main(int argc, char* argv[]) -> int {
-    Start(argc, argv);
+    display = std::make_unique<Display>("Blaze", 800, 600, false);
+    input = std::make_unique<Input>();
+    device = std::make_unique<VulkanGfxDevice>(*display);
+    renderer = std::make_unique<VulkanRenderer>(GetGfxDevice());
+    ui = std::make_unique<UserInterface>(renderer->swapchain.getFrameCount());
+    engine = std::make_unique<Blaze::Engine>();
+
+    engine->Run(*Blaze::CreateApplication());
+
+    ui.reset();
+    renderer.reset();
+    input.reset();
+    device.reset();
+    display.reset();
     return 0;
 }

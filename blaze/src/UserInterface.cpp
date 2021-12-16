@@ -120,7 +120,7 @@ void UserInterface::setMousePosition(const glm::vec2& pos) {
     };
 }
 
-void UserInterface::SetMousePressed(int button, bool flag) {
+void UserInterface::setMousePressed(int button, bool flag) {
     _ctx->IO.MouseDown[button] = flag;
 }
 
@@ -227,7 +227,7 @@ void UserInterface::_createFontsTexture() {
 
     _fontTexture = Texture2D(glm::u32(width), glm::u32(height), vk::Format::eR8G8B8A8Unorm);
     _fontTexture.setPixels(std::span(reinterpret_cast<const glm::u8vec4 *>(pixels), width * height));
-//    _material.SetTexture(0, _fontTexture);
+    _material.SetTexture(0, _fontTexture);
 }
 
 void UserInterface::_setupRenderState(ImDrawData* draw_data, CommandBuffer cmd, Mesh* rb, int fb_width, int fb_height) {
@@ -251,10 +251,10 @@ void UserInterface::_setupRenderState(ImDrawData* draw_data, CommandBuffer cmd, 
     (*cmd).setViewport(0, vk::Viewport{0, 0, float(fb_width), float(fb_height), 0, 1});
 
     const auto transform = std::array {
-            2.0f / draw_data->DisplaySize.x,
-            2.0f / draw_data->DisplaySize.y,
-            -1.0f - draw_data->DisplayPos.x * (2.0f / draw_data->DisplaySize.x),
-            -1.0f - draw_data->DisplayPos.y * (2.0f / draw_data->DisplaySize.y)
+        2.0f / draw_data->DisplaySize.x,
+        2.0f / draw_data->DisplaySize.y,
+        -1.0f - draw_data->DisplayPos.x * (2.0f / draw_data->DisplaySize.x),
+        -1.0f - draw_data->DisplayPos.y * (2.0f / draw_data->DisplaySize.y)
     };
 
     (*cmd).pushConstants(

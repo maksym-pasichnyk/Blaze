@@ -82,6 +82,20 @@ Display::Display(const std::string& title, int width, int height, bool resizable
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
     _window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
+
+    mouseButtonMapping.fill(-1);
+    mouseButtonMapping[size_t(MouseButton::Left)] = GLFW_MOUSE_BUTTON_LEFT;
+    mouseButtonMapping[size_t(MouseButton::Right)] = GLFW_MOUSE_BUTTON_RIGHT;
+    mouseButtonMapping[size_t(MouseButton::Middle)] = GLFW_MOUSE_BUTTON_MIDDLE;
+
+    keyCodeMapping.fill(-1);
+    keyCodeMapping[size_t(KeyCode::eLeftArrow)] = GLFW_KEY_A;
+    keyCodeMapping[size_t(KeyCode::eRightArrow)] = GLFW_KEY_D;
+    keyCodeMapping[size_t(KeyCode::eUpArrow)] = GLFW_KEY_W;
+    keyCodeMapping[size_t(KeyCode::eDownArrow)] = GLFW_KEY_S;
+    keyCodeMapping[size_t(KeyCode::eEscape)] = GLFW_KEY_ESCAPE;
+    keyCodeMapping[size_t(KeyCode::eSpace)] = GLFW_KEY_SPACE;
+    keyCodeMapping[size_t(KeyCode::eLeftShift)] = GLFW_KEY_LEFT_SHIFT;
 }
 
 Display::~Display() {
@@ -134,6 +148,10 @@ void Display::setMousePosition(const glm::vec2& pos) {
     glfwSetCursorPos(_window, pos.x, pos.y);
 }
 
-auto Display::getMousePressed(int button) const -> bool {
-    return glfwGetMouseButton(_window, button) != 0;
+auto Display::getMousePressed(MouseButton button) const -> bool {
+    return glfwGetMouseButton(_window, mouseButtonMapping[static_cast<size_t>(button)]) == GLFW_PRESS;
+}
+
+auto Display::getKeyPressed(KeyCode keycode) const -> bool {
+    return glfwGetKey(_window, keyCodeMapping[static_cast<size_t>(keycode)]) == GLFW_PRESS;
 }
