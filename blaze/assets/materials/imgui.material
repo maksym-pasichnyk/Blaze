@@ -2,13 +2,11 @@
     "stages": [
         {
             "file": "blaze:shaders/imgui.vert.spv",
-            "type": "vertex",
-            "entry": "main"
+            "type": "vertex"
         },
         {
             "file": "blaze:shaders/imgui.frag.spv",
-            "type": "fragment",
-            "entry": "main"
+            "type": "fragment"
         }
     ],
     "bindings": [
@@ -32,14 +30,6 @@
                     "offset": 16
                 }
             ]
-        }
-    ],
-    "layouts": [],
-    "constants": [
-        {
-            "stage": "vertex",
-            "offset": 0,
-            "size": 16
         }
     ],
     "topology": "triangle_list",

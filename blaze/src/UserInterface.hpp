@@ -1,26 +1,38 @@
 #pragma once
 
-#include <vulkan/vulkan.hpp>
-#include <util/internal_ptr.hpp>
+#include <vector>
+#include <glm/glm.hpp>
+#include <glm/vec2.hpp>
 
-struct Timestamp;
+#include "Mesh.hpp"
+#include "Texture.hpp"
+#include "Material.hpp"
+#include "CommandBuffer.hpp"
+
+struct ImDrawData;
+struct ImGuiContext;
 struct UserInterface {
-    friend struct Blaze;
+    explicit UserInterface(glm::u32 frameCount);
+    ~UserInterface();
 
-    void setDisplaySize(std::pair<int, int> size);
-    void setDisplayScale(std::pair<float, float> scale);
-    void setDeltaTime(const Timestamp& delta);
-    void setMousePosition(std::pair<float, float> pos);
-    void setMousePressed(int button, bool flag);
+    void setDeltaTime(float delta);
+    void setDisplaySize(const glm::ivec2& size);
+    void setDisplayScale(const glm::vec2& scale);
+    void setMousePosition(const glm::vec2& pos);
+    void SetMousePressed(int button, bool flag);
 
     void begin();
     void end();
-    void draw(vk::CommandBuffer cmd);
+    void draw(CommandBuffer cmd);
 
 private:
-    void init();
+    void _createFontsTexture();
+    void _setupRenderState(ImDrawData* draw_data, CommandBuffer cmd, Mesh* rb, int fb_width, int fb_height);
 
-private:
-    struct Impl;
-    blaze::unique_internal_ptr<Impl> impl;
+    ImGuiContext* _ctx;
+    Material _material{};
+    Texture2D _fontTexture;
+    uint32_t _frameIndex;
+    uint32_t _frameCount;
+    std::vector<Mesh> _frames;
 };

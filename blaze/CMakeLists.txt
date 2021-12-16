@@ -9,18 +9,16 @@ option(VMA_DYNAMIC_VULKAN_FUNCTIONS OFF)
 find_package(Vulkan REQUIRED)
 
 add_library(blaze STATIC
-    src/vulkan/vk_mem_alloc.cpp
-    src/vulkan/vk_mem_alloc.hpp
-    src/BlazeInstance.hpp
-    src/BlazeInstance.cpp
+    internal/vk_mem_alloc.cpp
+    internal/VulkanGfxDevice.cpp
+    internal/VulkanGfxDevice.hpp
+
+    src/Graphics.hpp
+    src/Graphics.cpp
     src/Display.cpp
     src/Display.hpp
-    src/RenderPipeline.cpp
-    src/RenderPipeline.hpp
     src/CommandPool.cpp
     src/CommandPool.hpp
-    src/DescriptorPool.cpp
-    src/DescriptorPool.hpp
     src/GraphicsBuffer.cpp
     src/GraphicsBuffer.hpp
     src/Blaze.cpp
@@ -40,17 +38,27 @@ add_library(blaze STATIC
     src/util/match.hpp
     src/Material.cpp
     src/Mesh.hpp
-    src/Timestamp.hpp
     src/CommandBuffer.cpp
     src/CommandBuffer.hpp
     src/TextureData.cpp
     src/TextureData.hpp
     src/ThreadPool.cpp
     src/ThreadPool.hpp
-)
+    src/Time.cpp
+    src/Time.hpp
+    src/GraphicsFence.cpp
+    src/GraphicsFence.hpp 
+    internal/VulkanSwapchain.cpp 
+    internal/VulkanSwapchain.hpp 
+    internal/VulkanGraphicsBuffer.hpp 
+    internal/VulkanCommandBuffer.hpp 
+    internal/VulkanTexture.hpp)
 
-target_include_directories(blaze PUBLIC
-    "${CMAKE_CURRENT_SOURCE_DIR}/src"
+target_include_directories(blaze
+    PUBLIC
+        "${CMAKE_CURRENT_SOURCE_DIR}/src"
+    PRIVATE
+        "${CMAKE_CURRENT_SOURCE_DIR}/internal"
 )
 
 target_compile_definitions(blaze PUBLIC
@@ -75,6 +83,7 @@ add_subdirectory(third_party/glm)
 add_subdirectory(third_party/spdlog)
 add_subdirectory(third_party/range-v3)
 add_subdirectory(third_party/VulkanMemoryAllocator)
+add_subdirectory(third_party/SPIRV-Cross)
 
 if (CMAKE_SYSTEM_NAME MATCHES "Windows")
     add_subdirectory(third_party/glfw)
@@ -112,13 +121,22 @@ else()
     )
 endif()
 
-target_link_libraries(blaze PUBLIC
-    glm
-    imgui
-    spdlog
-    range-v3
-    Vulkan::Vulkan
-    VulkanMemoryAllocator
+target_link_libraries(blaze
+    PUBLIC
+        glm
+        imgui
+        spdlog
+        range-v3
+        Vulkan::Vulkan
+        VulkanMemoryAllocator
+    PRIVATE
+        spirv-cross-glsl
+        spirv-cross-hlsl
+        spirv-cross-cpp
+        spirv-cross-reflect
+        spirv-cross-msl
+        spirv-cross-util
+        spirv-cross-core
 )
 
 function(target_compile_shaders TARGET)

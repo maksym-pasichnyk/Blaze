@@ -2,13 +2,8 @@
 
 #include <memory>
 
-struct CommandBuffer;
-struct CommandPool {
+struct GraphicsFence {
     friend struct Graphics;
-
-    auto allocate() -> CommandBuffer;
-    void free(const CommandBuffer& cmd);
-
 private:
     struct Dispose {
         void operator()(void*);

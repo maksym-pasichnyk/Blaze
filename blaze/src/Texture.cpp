@@ -1,10 +1,15 @@
 #include "Texture.hpp"
-#include "BlazeInstance.hpp"
+#include "Graphics.hpp"
 #include "CommandPool.hpp"
 #include "GraphicsBuffer.hpp"
 #include "Blaze.hpp"
 
 #include <map>
+#include <VulkanTexture.hpp>
+#include <VulkanGfxDevice.hpp>
+#include <VulkanGraphicsBuffer.hpp>
+
+extern auto GetGfxDevice() -> VulkanGfxDevice&;
 
 struct VULKAN_FORMAT_INFO {
     int size;
@@ -296,122 +301,32 @@ const auto vk_format_table = std::map<vk::Format, VULKAN_FORMAT_INFO>{
 //    { vk::Format::eR12X4UnormPack16KHR,                      { 0, 0 } },
 };
 
-struct Texture::Impl {
-    VkImage image;
-    VkImageView view;
-    VkSampler sampler;
-    VmaAllocation allocation;
-
-    Impl() = default;
-    ~Impl() {
-        if (allocation != nullptr) {
-            vmaDestroyImage(Blaze::GetMemoryResource(), image, allocation);
-        }
-        Blaze::GetLogicalDevice().destroyImageView(view, nullptr);
-    }
-};
+void Texture::Dispose::operator()(void* texture) {
+    GetGfxDevice().DestroyTexture(texture);
+}
 
 Texture::Texture(VkImage image, VkImageView view, VkSampler sampler, VmaAllocation allocation) {
-    impl = blaze::make_internal<Impl>();
-    impl->image = image;
-    impl->view = view;
-    impl->sampler = sampler;
-    impl->allocation = allocation;
+    impl.reset(GetGfxDevice().CreateTexture(image, view, sampler, allocation));
+}
+
+auto Texture::getImage() const -> vk::Image {
+    return static_cast<VulkanTexture*>(impl.get())->image;
 }
 
 auto Texture::getSampler() const -> vk::Sampler {
-    return impl->sampler;
+    return static_cast<VulkanTexture*>(impl.get())->sampler;
 }
 
 auto Texture::getImageView() const -> vk::ImageView {
-    return impl->view;
+    return static_cast<VulkanTexture*>(impl.get())->imageView;
 }
 
-auto Texture::CreateDepthTexture(vk::Format format, const vk::Extent2D& extent) -> Texture {
-    const auto imageCreateInfo = (VkImageCreateInfo) vk::ImageCreateInfo{
-        .imageType = vk::ImageType::e2D,
-        .format = format,
-        .extent = {
-            .width = extent.width,
-            .height = extent.height,
-            .depth = 1
-        },
-        .mipLevels = 1,
-        .arrayLayers = 1,
-        .usage = vk::ImageUsageFlagBits::eDepthStencilAttachment
-    };
-
-    VkImage image;
-    VmaAllocation allocation;
-
-    const auto allocationCreateInfo = VmaAllocationCreateInfo{
-        .usage = VMA_MEMORY_USAGE_GPU_ONLY
-    };
-    vmaCreateImage(Blaze::GetMemoryResource(), &imageCreateInfo, &allocationCreateInfo, &image, &allocation, nullptr);
-
-    const auto imageViewCreateInfo = vk::ImageViewCreateInfo{
-        .image = image,
-        .viewType = vk::ImageViewType::e2D,
-        .format = format,
-        .subresourceRange = {
-            .aspectMask = vk::ImageAspectFlagBits::eDepth,
-            .baseMipLevel = 0,
-            .levelCount = 1,
-            .baseArrayLayer = 0,
-            .layerCount = 1
-        }
-    };
-
-    const auto view = Blaze::GetLogicalDevice().createImageView(imageViewCreateInfo);
-
-    return {image, view, {}, allocation};
+Texture2D::Texture2D(glm::u32 width, glm::u32 height, vk::Format format) : _width(width), _height(height) {
+    impl.reset(GetGfxDevice().CreateTexture(width, height, format));
 }
 
-Texture2d::Texture2d(const TextureExtent& extent/*, vk::Format format*/) : /*_format{format},*/ _extent(extent) {
-    const auto imageCreateInfo = static_cast<VkImageCreateInfo>(vk::ImageCreateInfo{
-        .imageType = vk::ImageType::e2D,
-        .format = /*format*/vk::Format::eR8G8B8A8Unorm,
-        .extent = {
-            .width = _extent.width,
-            .height = _extent.height,
-            .depth = 1
-        },
-        .mipLevels = 1,
-        .arrayLayers = 1,
-        .usage = vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst
-    });
-
-    VkImage image;
-    VmaAllocation allocation;
-
-    const auto allocationCreateInfo = VmaAllocationCreateInfo{
-        .usage = VMA_MEMORY_USAGE_GPU_ONLY
-    };
-    vmaCreateImage(Blaze::GetMemoryResource(), &imageCreateInfo, &allocationCreateInfo, &image, &allocation, nullptr);
-
-    const auto imageViewCreateInfo = vk::ImageViewCreateInfo {
-        .image = image,
-        .viewType = vk::ImageViewType::e2D,
-        .format = /*format*/vk::Format::eR8G8B8A8Unorm,
-        .subresourceRange = {
-            .aspectMask = vk::ImageAspectFlagBits::eColor,
-            .baseMipLevel = 0,
-            .levelCount = 1,
-            .baseArrayLayer = 0,
-            .layerCount = 1
-        }
-    };
-    const auto view = Blaze::GetLogicalDevice().createImageView(imageViewCreateInfo);
-
-    _texture = {image, view, {}, allocation};
-
-//    if (auto it = vk_format_table.find(format); it != vk_format_table.end()) {
-//        _channels = it->second.channels;
-//    }
-}
-
-void Texture2d::setPixels(std::span<const glm::u8vec4> pixels) {
-    auto stagingBuffer = GraphicsBuffer(GraphicsBuffer::Target::CopySrc, pixels.size_bytes());
+void Texture2D::setPixels(std::span<const glm::u8vec4> pixels) {
+    auto stagingBuffer = GraphicsBuffer(GraphicsBuffer::Target::CopySrc, static_cast<int>(pixels.size_bytes()));
     stagingBuffer.setData(std::as_bytes(pixels), 0);
 
     const auto copy_barrier = vk::ImageMemoryBarrier{
@@ -420,7 +335,7 @@ void Texture2d::setPixels(std::span<const glm::u8vec4> pixels) {
         .newLayout = vk::ImageLayout::eTransferDstOptimal,
         .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
         .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-        .image = _texture.impl->image,
+        .image = getImage(),
         .subresourceRange = {
             .aspectMask = vk::ImageAspectFlagBits::eColor,
             .levelCount = 1,
@@ -434,8 +349,8 @@ void Texture2d::setPixels(std::span<const glm::u8vec4> pixels) {
             .layerCount = 1
         },
         .imageExtent = {
-            .width = _extent.width,
-            .height = _extent.height,
+            .width = _width,
+            .height = _height,
             .depth = 1
         }
     };
@@ -447,7 +362,7 @@ void Texture2d::setPixels(std::span<const glm::u8vec4> pixels) {
         .newLayout = vk::ImageLayout::eShaderReadOnlyOptimal,
         .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
         .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-        .image = _texture.impl->image,
+        .image = getImage(),
         .subresourceRange = {
             .aspectMask = vk::ImageAspectFlagBits::eColor,
             .levelCount = 1,
@@ -455,22 +370,25 @@ void Texture2d::setPixels(std::span<const glm::u8vec4> pixels) {
         }
     };
 
-    auto pool = CommandPool(Blaze::GetGraphicsFamily());
-    auto cmd = pool.allocate(vk::CommandBufferLevel::ePrimary);
-    (*cmd).begin({.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit});
+    auto vk_stagingBuffer = static_cast<VulkanGraphicsBuffer*>(stagingBuffer.getNativeBufferPtr())->buffer;
 
+    auto fence = Graphics::CreateGraphicsFence();
+    auto pool = Graphics::CreateCommandPool();
+    auto cmd = pool.allocate();
+    (*cmd).begin({.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit});
     (*cmd).pipelineBarrier(vk::PipelineStageFlagBits::eHost, vk::PipelineStageFlagBits::eTransfer, {}, {}, {}, {copy_barrier});
-    (*cmd).copyBufferToImage(*stagingBuffer, _texture.impl->image, vk::ImageLayout::eTransferDstOptimal, {region});
+    (*cmd).copyBufferToImage(vk_stagingBuffer, getImage(), vk::ImageLayout::eTransferDstOptimal, {region});
     (*cmd).pipelineBarrier(vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eFragmentShader, {}, {}, {}, {use_barrier});
     (*cmd).end();
-
-    const auto commandBuffers = std::array{ *cmd };
-
-    const auto submitInfo = vk::SubmitInfo{}
-        .setCommandBuffers(commandBuffers);
-
-    Blaze::GetGraphicsQueue().submit(1, &submitInfo, nullptr);
-    Blaze::GetGraphicsQueue().waitIdle();
-
+    Graphics::ExecuteCommandBuffer(cmd, fence);
+    Graphics::WaitOnGraphicsFence(fence);
     pool.free(cmd);
+}
+
+void RenderTexture::Dispose::operator()(void* texture) {
+//    GetGfxDevice().DestroyTexture(texture);
+}
+
+RenderTexture::RenderTexture(const RenderTextureDescriptor &descriptor) : descriptor(descriptor) {
+
 }

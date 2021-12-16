@@ -1,174 +1,142 @@
+#include "Time.hpp"
 #include "Blaze.hpp"
 #include "Input.hpp"
 #include "Display.hpp"
-#include "Timestamp.hpp"
 #include "UserInterface.hpp"
-#include "BlazeInstance.hpp"
-#include "RenderPipeline.hpp"
+#include "GraphicsBuffer.hpp"
 
-namespace {
-    Timestamp s_Timestamp;
+#include <VulkanGfxDevice.hpp>
+#include <VulkanSwapchain.hpp>
 
-    Display        s_Display;
-    Input          s_Input;
-    BlazeInstance  s_Context;
-    RenderPipeline s_Graphics;
-    UserInterface  s_Overlay;
-}
+struct VulkanRenderer {
+    VulkanSwapchain swapchain;
 
-static auto FindSupportedFormat(vk::PhysicalDevice device, std::span<const vk::Format> formats, vk::FormatFeatureFlags flags) -> vk::Format {
-    for (auto format : formats) {
-        const auto properties = device.getFormatProperties(format);
-        if ((properties.optimalTilingFeatures & flags) == flags) {
-            return format;
-        }
+    explicit VulkanRenderer(VulkanGfxDevice& device) : swapchain(device) {
     }
-    for (auto format : formats) {
-        const auto properties = device.getFormatProperties(format);
-        if ((properties.linearTilingFeatures & flags) == flags) {
-            return format;
-        }
-    }
-    return vk::Format::eUndefined;
+};
+
+static std::unique_ptr<Display> display;
+static std::unique_ptr<VulkanGfxDevice> device;
+static std::unique_ptr<VulkanRenderer> renderer;
+static std::unique_ptr<Input> input;
+static std::unique_ptr<UserInterface> ui;
+
+auto GetDisplay() -> Display& {
+    return *display;
 }
 
-auto Blaze::GetInput() -> Input* {
-    return &s_Input;
+auto GetGfxDevice() -> VulkanGfxDevice& {
+    return *device;
 }
 
-auto Blaze::GetDisplay() -> Display* {
-    return &s_Display;
+auto GetInputDevice() -> Input& {
+    return *input;
 }
 
-auto Blaze::GetGraphics() -> RenderPipeline* {
-    return &s_Graphics;
+auto Blaze::GetSwapchainRenderPass() -> vk::RenderPass {
+    return renderer->swapchain.getRenderPass();
 }
 
 auto Blaze::GetLogicalDevice() -> vk::Device {
-    return s_Context.getLogicalDevice();
-}
-
-auto Blaze::GetPhysicalDevice() -> vk::PhysicalDevice {
-    return s_Context.getPhysicalDevice();
+    return GetGfxDevice().getLogicalDevice();
 }
 
 auto Blaze::GetMemoryResource() -> VmaAllocator {
-    return s_Context.getMemoryResource();
+    return GetGfxDevice().getMemoryResource();
 }
 
-auto Blaze::GetPresentQueue() -> vk::Queue {
-    return s_Context.getPresentQueue();
-}
+using Clock = std::chrono::high_resolution_clock;
+using TimePoint = Clock::time_point;
 
-auto Blaze::GetGraphicsQueue() -> vk::Queue {
-    return s_Context.getGraphicsQueue();
-}
+struct Blaze::Engine {
+    TimePoint lastTime;
 
-auto Blaze::GetPresentFamily() -> uint32_t {
-    return s_Context.getPresentFamily();
-}
-
-auto Blaze::GetGraphicsFamily() -> uint32_t {
-    return s_Context.getGraphicsFamily();
-}
-
-auto Blaze::GetSurface() -> vk::SurfaceKHR {
-    return s_Context.getSurface();
-}
-
-auto Blaze::GetSupportedDepthFormat() -> vk::Format {
-    static constexpr auto formats = std::array{
-        vk::Format::eD32SfloatS8Uint,
-        vk::Format::eD24UnormS8Uint,
-        vk::Format::eD32Sfloat
-    };
-    return FindSupportedFormat(
-        GetPhysicalDevice(),
-        formats,
-        vk::FormatFeatureFlagBits::eDepthStencilAttachment
-    );
-}
-
-auto Blaze::GetFrameCount() -> size_t {
-    return s_Graphics.getFrameCount();
-}
-
-auto Blaze::GetSurfaceExtent() -> vk::Extent2D {
-    return s_Graphics.getSurfaceExtent();
-}
-
-auto Blaze::GetDeltaTime() -> float {
-    return static_cast<float>(s_Timestamp.seconds());
-}
-
-void Blaze::Start(const std::string& title, int width, int height, bool resizable, App& app) {
-    s_Display.init(title, width, height, resizable);
-    //    s_Input.init();
-    s_Context.init(s_Display);
-    s_Graphics.init();
-
-    s_Overlay.init();
-
-    const auto extent = s_Graphics.getSurfaceExtent();
-    const auto viewport = vk::Viewport{
-        .x = 0,
-        .y = 0,
-        .width = static_cast<float>(extent.width),
-        .height = static_cast<float>(extent.height),
-        .minDepth = 0,
-        .maxDepth = 1
-    };
-
-    const auto scissor = vk::Rect2D{
-        .extent = extent
-    };
-
-    app.Init();
-
-    using Clock = std::chrono::high_resolution_clock;
-
-    auto lastTime = Clock::now();
-    while (!s_Display.shouldClose()) {
-        s_Display.pollEvents();
-
-        const auto currentTime = Clock::now();
-        s_Timestamp = Timestamp{currentTime - lastTime};
-        lastTime = currentTime;
-
-        app.Update();
-
-        s_Overlay.setMousePosition(s_Display.getMousePosition());
-        s_Overlay.setDisplayScale(s_Display.getScale());
-        s_Overlay.setDisplaySize(s_Display.getSize());
-        s_Overlay.setDeltaTime(s_Timestamp);
-
-        for (int i = 0; i < 5; i++) {
-            s_Overlay.setMousePressed(i, s_Display.getMousePressed(i));
-        }
-
-        s_Overlay.begin();
-        app.Overlay();
-        s_Overlay.end();
-
-        auto cmd = s_Graphics.begin();
-        (*cmd).setViewport(0, viewport);
-        (*cmd).setScissor(0, scissor);
-
-        app.Render(cmd);
-
-        s_Overlay.draw(*cmd);
-        s_Graphics.present();
+    Engine(const std::string& title, int width, int height, bool resizable) {
+        display = std::make_unique<Display>(title, width, height, resizable);
+        input = std::make_unique<Input>();
+        device = std::make_unique<VulkanGfxDevice>(*display);
+        renderer = std::make_unique<VulkanRenderer>(GetGfxDevice());
+        ui = std::make_unique<UserInterface>(renderer->swapchain.getFrameCount());
     }
 
-    GetLogicalDevice().waitIdle();
+    ~Engine() {
+        ui.reset();
+        renderer.reset();
+        input.reset();
+        device.reset();
+        display.reset();
+    }
 
-    app.Destroy();
+    auto ShouldQuit() -> bool {
+        return display->shouldClose();
+    }
 
-    s_Overlay = {};
-    s_Graphics = {};
-    s_Context = {};
-    s_Input = {};
-    s_Display = {};
+    void WaitForLastPresentationAndGetTimestamp() {
+        const auto currentTime = Clock::now();
+        const auto delta = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - lastTime).count();
+        lastTime = currentTime;
+
+        Time::_setDeltaTime(delta);
+    }
+
+    void PumpOSMessages() {
+        display->pollEvents();
+    }
+
+    void UpdateInput() {
+
+    }
+
+    void Update(Blaze::App& app) {
+        ui->setMousePosition(display->getMousePosition());
+        ui->setDisplayScale(display->getScale());
+        ui->setDisplaySize(display->getSize());
+        ui->setDeltaTime(Time::getDeltaTime());
+
+        for (int i = 0; i < 5; i++) {
+            ui->SetMousePressed(i, display->getMousePressed(i));
+        }
+
+        input->_update();
+
+        app.Update();
+    }
+
+    void WaitForRenderThread() {
+
+    }
+
+    void IssueRenderingCommands(Blaze::App& app) {
+        ui->begin();
+        app.DrawUI();
+        ui->end();
+
+        auto cmd = renderer->swapchain.begin(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f), 1.0f, 0);
+        app.Render(cmd);
+        ui->draw(cmd);
+        renderer->swapchain.present();
+    }
+
+    void Run(Blaze::App& app) {
+        app.Init();
+
+        lastTime = Clock::now();
+        while (!ShouldQuit()) {
+            WaitForLastPresentationAndGetTimestamp();
+            PumpOSMessages();
+            UpdateInput();
+            Update(app);
+            WaitForRenderThread();
+            IssueRenderingCommands(app);
+        }
+        GetGfxDevice().WaitIdle();
+        app.Destroy();
+    }
+};
+
+void Blaze::Start(const std::string& title, int width, int height, bool resizable, App& app) {
+    auto engine = Engine{title, width, height, resizable};
+    engine.Run(app);
 }
 
 extern void Start(int argc, char* argv[]);

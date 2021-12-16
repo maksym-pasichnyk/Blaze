@@ -1,9 +1,12 @@
-#include <iostream>
-#include "Material.hpp"
-#include "Resources.hpp"
 #include "Json.hpp"
 #include "Blaze.hpp"
-#include "RenderPipeline.hpp"
+#include <Texture.hpp>
+#include <Material.hpp>
+#include <Resources.hpp>
+#include <GraphicsBuffer.hpp>
+#include <VulkanGraphicsBuffer.hpp>
+
+#include <spirv_glsl.hpp>
 
 template <>
 struct Json::Into<vk::ShaderStageFlagBits> {
@@ -40,6 +43,34 @@ struct Json::Into<vk::CullModeFlags> {
             { "front",             vk::CullModeFlagBits::eFront },
             { "back",              vk::CullModeFlagBits::eBack },
             { "front_and_back",    vk::CullModeFlagBits::eFrontAndBack },
+        };
+
+        if (auto it = table.find(o.to_string()); it != table.end()) {
+            return it->second;
+        }
+        return std::nullopt;
+    }
+};
+
+template <>
+struct Json::Into<vk::DescriptorType> {
+    static auto into(const Json& o) -> std::optional<vk::DescriptorType> {
+        static const auto table = std::map<std::string, vk::DescriptorType>{
+            { "sampler",                    vk::DescriptorType::eSampler },
+            { "combined_image_sampler",     vk::DescriptorType::eCombinedImageSampler },
+            { "sampled_image",              vk::DescriptorType::eSampledImage },
+            { "storage_image",              vk::DescriptorType::eStorageImage },
+            { "uniform_texel_buffer",       vk::DescriptorType::eUniformTexelBuffer },
+            { "storage_texel_buffer",       vk::DescriptorType::eStorageTexelBuffer },
+            { "uniform_buffer",             vk::DescriptorType::eUniformBuffer },
+            { "storage_buffer",             vk::DescriptorType::eStorageBuffer },
+            { "uniform_buffer_dynamic",     vk::DescriptorType::eUniformBufferDynamic },
+            { "storage_buffer_dynamic",     vk::DescriptorType::eStorageBufferDynamic },
+            { "input_attachment",           vk::DescriptorType::eInputAttachment },
+//            { "inline_uniform_block_ext",   vk::DescriptorType::eInlineUniformBlockEXT },
+//            { "acceleration_structure_khr", vk::DescriptorType::eAccelerationStructureKHR },
+//            { "acceleration_structure_nv",  vk::DescriptorType::eAccelerationStructureNV },
+//            { "mutable_valve",              vk::DescriptorType::eMutableVALVE }
         };
 
         if (auto it = table.find(o.to_string()); it != table.end()) {
@@ -551,25 +582,110 @@ struct Material::Impl {
     vk::PipelineLayout pipelineLayout;
     std::vector<uint32_t> dynamicOffsets;
 
-    DescriptorPool descriptorPool;
+    vk::DescriptorPool descriptorPool;
+    vk::DescriptorSetLayout descriptorSetLayout;
     std::vector<vk::DescriptorSet> descriptorSets;
-    std::vector<vk::DescriptorSetLayout> descriptorSetLayouts{};
 
     std::vector<vk::Sampler> samplers;
 
-    Impl(const std::string& filename) {
+    explicit Impl(const std::string& filename) {
         _createDescriptorPool();
 
         const auto material_resource = Resources::get(filename).value();
         const auto o = Json::Read::read(memstream{material_resource.bytes()}).value();
 
-        const auto stages = ParseStages(o);
-
+        auto constants = std::vector<vk::PushConstantRange>{};
+        auto stages = std::vector<vk::PipelineShaderStageCreateInfo>{};
         auto bindings = std::vector<vk::VertexInputBindingDescription>{};
         auto attributes = std::vector<vk::VertexInputAttributeDescription>{};
+        auto descriptorSetLayoutBindings = std::vector<vk::DescriptorSetLayoutBinding>{};
+
+        for (auto&& stage : o.at("stages").to_array()) {
+            const auto file = Resources::get(stage.at("file").to_string()).value();
+            const auto data = reinterpret_cast<const uint32_t *>(file.data());
+
+            assert((file.size() % 4) == 0);
+
+            auto glsl = spirv_cross::CompilerGLSL(data, file.size() / 4);
+
+            const auto moduleCreateInfo = vk::ShaderModuleCreateInfo{
+                .codeSize = file.size(),
+                .pCode    = data
+            };
+
+            const auto stageCreateInfo = vk::PipelineShaderStageCreateInfo{
+                .flags  = {},
+                .stage  = stage.at("type"),
+                .module = Blaze::GetLogicalDevice().createShaderModule(moduleCreateInfo),
+                .pName = glsl.get_entry_points_and_stages()[0].name.c_str()
+            };
+            stages.emplace_back(stageCreateInfo);
+
+            auto resources = glsl.get_shader_resources();
+            for (auto&& resource : resources.uniform_buffers) {
+//                const auto set = glsl.get_decoration(resource.id, spv::DecorationDescriptorSet);
+                const auto binding = glsl.get_decoration(resource.id, spv::DecorationBinding);
+                const auto descriptorSetLayoutBinding = vk::DescriptorSetLayoutBinding{
+                    .binding = binding,
+                    .descriptorType = vk::DescriptorType::eUniformBuffer,
+                    .descriptorCount = 1,
+                    .stageFlags = stageCreateInfo.stage,
+                    .pImmutableSamplers = nullptr
+                };
+                descriptorSetLayoutBindings.emplace_back(descriptorSetLayoutBinding);
+            }
+
+            for (auto&& resource : resources.sampled_images) {
+//                const auto set = glsl.get_decoration(resource.id, spv::DecorationDescriptorSet);
+                const auto binding = glsl.get_decoration(resource.id, spv::DecorationBinding);
+//                const auto type = glsl.get_type(resource.base_type_id);
+
+                const auto descriptorSetLayoutBinding = vk::DescriptorSetLayoutBinding{
+                    .binding = binding,
+                    .descriptorType = vk::DescriptorType::eCombinedImageSampler,
+                    .descriptorCount = 1,
+                    .stageFlags = stageCreateInfo.stage,
+                    .pImmutableSamplers = nullptr
+                };
+                descriptorSetLayoutBindings.emplace_back(descriptorSetLayoutBinding);
+            }
+
+            if (!resources.push_constant_buffers.empty()) {
+                assert(resources.push_constant_buffers.size() == 1);
+                auto&& resource = resources.push_constant_buffers[0];
+                auto&& type = glsl.get_type(resource.base_type_id);
+
+//                const auto size = glsl.get_declared_struct_size(type);
+//                spdlog::info("ConstantBuffer: name = {}, size = {}", resource.name, size);
+//                for (auto&& range : glsl.get_active_buffer_ranges(resource.id)) {
+//                    spdlog::info("Accessing member {}, offset {}, size {}", range.index, range.offset, range.range);
+//                }
+
+                constants.emplace_back(vk::PushConstantRange{
+                    .stageFlags = stageCreateInfo.stage,
+                    .offset     = 0,
+                    .size       = static_cast<uint32_t>(glsl.get_declared_struct_size(type))
+                });
+            }
+
+//            spdlog::info("");
+        }
+
+        const auto layoutCreateInfo = vk::DescriptorSetLayoutCreateInfo {}
+            .setBindings(descriptorSetLayoutBindings);
+
+        descriptorSetLayout = Blaze::GetLogicalDevice().createDescriptorSetLayout(layoutCreateInfo, nullptr);
+
+        const auto descriptorSetAllocateInfo = vk::DescriptorSetAllocateInfo {
+            .descriptorPool = descriptorPool,
+            .descriptorSetCount = 1,
+            .pSetLayouts = &descriptorSetLayout
+        };
+
+        descriptorSets = Blaze::GetLogicalDevice().allocateDescriptorSets(descriptorSetAllocateInfo);
 
         if (o.contains("bindings")) {
-            for (auto&& binding: o.at("bindings").to_array()) {
+            for (auto&& binding : o.at("bindings").to_array()) {
                 bindings.emplace_back(vk::VertexInputBindingDescription{
                     .binding   = static_cast<uint32_t>(bindings.size()),
                     .stride    = binding.at("stride"),
@@ -662,37 +778,8 @@ struct Material::Impl {
         const auto dynamicState = vk::PipelineDynamicStateCreateInfo{}
             .setDynamicStates(dynamicStates);
 
-        if (o.contains("layouts")) {
-            const auto layoutBinding = vk::DescriptorSetLayoutBinding{
-                .binding = 0,
-                .descriptorType = vk::DescriptorType::eCombinedImageSampler,
-                .descriptorCount = 1,
-                .stageFlags = vk::ShaderStageFlagBits::eFragment,
-                .pImmutableSamplers = nullptr
-            };
-
-            const auto layoutCreateInfo = vk::DescriptorSetLayoutCreateInfo {}
-                .setBindings(layoutBinding);
-
-            const auto layout = Blaze::GetLogicalDevice().createDescriptorSetLayout(layoutCreateInfo, nullptr);
-
-            descriptorSetLayouts.emplace_back(layout);
-            descriptorSets.emplace_back(descriptorPool.allocate(layout));
-        }
-
-        auto constants = std::vector<vk::PushConstantRange>{};
-        if (o.contains("constants")) {
-            for (auto&& constant : o.at("constants").to_array()) {
-                constants.emplace_back(vk::PushConstantRange{
-                    .stageFlags = constant.at("stage"),
-                    .offset     = constant.at("offset"),
-                    .size       = constant.at("size")
-                });
-            }
-        }
-
         const auto pipelineLayoutCreateInfo = vk::PipelineLayoutCreateInfo{}
-            .setSetLayouts(descriptorSetLayouts)
+            .setSetLayouts(descriptorSetLayout)
             .setPushConstantRanges(constants);
 
         pipelineLayout = Blaze::GetLogicalDevice().createPipelineLayout(pipelineLayoutCreateInfo);
@@ -707,7 +794,7 @@ struct Material::Impl {
             .pColorBlendState = &colorBlendState,
             .pDynamicState = &dynamicState,
             .layout = pipelineLayout,
-            .renderPass = Blaze::GetGraphics()->getRenderPass(),
+            .renderPass = Blaze::GetSwapchainRenderPass(),
             .subpass = 0,
             .basePipelineHandle = VK_NULL_HANDLE
         }.setStages(stages);
@@ -720,34 +807,24 @@ struct Material::Impl {
     }
 
     ~Impl() {
-        for (auto& descriptorSetLayout : descriptorSetLayouts) {
-            Blaze::GetLogicalDevice().destroyDescriptorSetLayout(descriptorSetLayout, nullptr);
-        }
+        Blaze::GetLogicalDevice().destroyDescriptorSetLayout(descriptorSetLayout, nullptr);
+        Blaze::GetLogicalDevice().destroyDescriptorPool(descriptorPool, nullptr);
         Blaze::GetLogicalDevice().destroyPipelineLayout(pipelineLayout, nullptr);
         Blaze::GetLogicalDevice().destroyPipeline(pipeline, nullptr);
+
     }
 
     void _createDescriptorPool() {
         const auto poolSizes = std::array {
             vk::DescriptorPoolSize{vk::DescriptorType::eCombinedImageSampler, 1},
+            vk::DescriptorPoolSize{vk::DescriptorType::eUniformBuffer, 1},
         };
-        descriptorPool = DescriptorPool(1, poolSizes);
-    }
-
-    static auto ParseStages(const Json& o) -> std::vector<vk::PipelineShaderStageCreateInfo> {
-        return o.at("stages").to_array() | ranges::views::transform([](const auto& stage) {
-            const auto file = Resources::get(stage.at("file").to_string()).value();
-
-            return vk::PipelineShaderStageCreateInfo{
-                .flags  = {},
-                .stage  = stage.at("type"),
-                .module = Blaze::GetLogicalDevice().createShaderModule(vk::ShaderModuleCreateInfo{
-                    .codeSize = file.size(),
-                    .pCode    = reinterpret_cast<const uint32_t *>(file.data())
-                }),
-                .pName  = stage.at("entry").to_string().c_str()
-            };
-        }) | ranges::to_vector;
+        const auto descriptorPoolCreateInfo = vk::DescriptorPoolCreateInfo{
+            .maxSets = 1,
+            .poolSizeCount = static_cast<uint32_t>(std::size(poolSizes)),
+            .pPoolSizes = std::data(poolSizes)
+        };
+        descriptorPool = Blaze::GetLogicalDevice().createDescriptorPool(descriptorPoolCreateInfo, nullptr);
     }
 };
 
@@ -773,16 +850,36 @@ auto Material::getDescriptorSets() const -> std::span<const vk::DescriptorSet> {
     return impl->descriptorSets;
 }
 
-void Material::setTexture(uint32_t index, const Texture2d &texture, vk::Sampler sampler) {
+void Material::SetConstantBuffer(uint32_t index, const GraphicsBuffer& buffer) {
+    auto vk_buffer = static_cast<VulkanGraphicsBuffer*>(buffer.getNativeBufferPtr());
+
+    const auto bufferInfo = vk::DescriptorBufferInfo {
+        .buffer = vk_buffer->buffer,
+        .offset = 0,
+        .range = static_cast<vk::DeviceSize>(buffer.getSize())
+    };
+    const auto writeDescriptorSet = vk::WriteDescriptorSet{
+        .dstSet = impl->descriptorSets[0],
+        .dstBinding = index,
+        .dstArrayElement = 0,
+        .descriptorCount = 1,
+        .descriptorType = vk::DescriptorType::eUniformBuffer,
+        .pBufferInfo = &bufferInfo
+    };
+
+    Blaze::GetLogicalDevice().updateDescriptorSets({writeDescriptorSet}, {});
+}
+
+void Material::SetTexture(uint32_t index, const Texture2D &texture) {
     const auto imageInfo = vk::DescriptorImageInfo{
-        .sampler = sampler,
+        .sampler = texture.getSampler(),
         .imageView = texture.getImageView(),
         .imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal
     };
 
     const auto writeDescriptorSet = vk::WriteDescriptorSet{
-        .dstSet = impl->descriptorSets[index],
-        .dstBinding = 0,
+        .dstSet = impl->descriptorSets[0],
+        .dstBinding = index,
         .dstArrayElement = 0,
         .descriptorCount = 1,
         .descriptorType = vk::DescriptorType::eCombinedImageSampler,

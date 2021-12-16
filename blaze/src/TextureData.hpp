@@ -4,24 +4,19 @@
 #include <memory>
 #include <glm/glm.hpp>
 
-struct TextureExtent {
-    glm::u32 width;
-    glm::u32 height;
-
-    template <typename T>
-    [[nodiscard]] auto into() const -> T;
-};
-
 struct TextureData {
-    TextureData() = default;
-    TextureData(glm::u32 width, glm::u32 height)
-        : _width(width)
-        , _height(height)
-        , _pixels(std::make_unique<glm::u8vec4[]>(static_cast<size_t>(width) * height)) {}
+    static auto Create(glm::u32 width, glm::u32 height) -> TextureData {
+        TextureData data;
+        data._width = width;
+        data._height = height;
+        data._pixels = std::make_unique<glm::u8vec4[]>(static_cast<size_t>(width) * height);
+        return data;
+    }
 
-    [[nodiscard]] auto getExtent() const -> TextureExtent {
+    [[nodiscard]] auto getDimension() const -> glm::ivec2 {
         return {_width, _height};
     }
+
 
     [[nodiscard]] auto getPixels() const & -> std::span<const glm::u8vec4> {
         return {_pixels.get(), static_cast<size_t>(_width) * _height};

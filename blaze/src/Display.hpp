@@ -5,29 +5,27 @@
 #include <memory>
 #include <variant>
 #include <optional>
+#include <glm/vec2.hpp>
 #include <vulkan/vulkan.hpp>
+#include <util/internal_ptr.hpp>
 
-#include "util/internal_ptr.hpp"
-
+struct GLFWwindow;
 struct Display {
-    friend struct Blaze;
-
-private:
-    void init(const std::string& title, int width, int height, bool resizable);
+    Display(const std::string& title, int width, int height, bool resizable);
+    ~Display();
 
 public:
     void pollEvents();
-    auto shouldClose() -> bool;
+    auto shouldClose() const -> bool;
     auto createSurface(vk::Instance instance) -> vk::SurfaceKHR;
     auto getInstanceExtensions() const-> std::vector<const char *>;
-    auto getSize() const-> std::pair<int, int>;
-    auto getScale() const-> std::pair<float, float>;
+    auto getSize() const-> glm::ivec2;
+    auto getScale() const-> glm::vec2;
     auto hasFocus() const-> bool;
-    auto getMousePosition() const -> std::pair<float, float>;
-    void setMousePosition(std::pair<float, float> pos);
+    auto getMousePosition() const -> glm::vec2;
+    void setMousePosition(const glm::vec2& pos);
     auto getMousePressed(int button) const -> bool;
 
 private:
-    struct Impl;
-    blaze::unique_internal_ptr<Impl> impl;
+    GLFWwindow* _window;
 };

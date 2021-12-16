@@ -1,8 +1,9 @@
 #pragma once
 
 #include <memory>
+#include <glm/vec2.hpp>
 
-enum class BlazeKeyCode {
+enum class KeyCode {
     eTab,
     eLeftArrow,
     eRightArrow,
@@ -38,4 +39,11 @@ enum class BlazeKeyCode {
 
 struct Input {
     friend struct Blaze;
+
+    static auto getMouseDelta() -> glm::vec2;
+
+private:
+    glm::vec2 mouseDelta;
+
+    void _update();
 };

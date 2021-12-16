@@ -16,3 +16,6 @@
 [submodule "blaze/third_party/spdlog"]
 	path = blaze/third_party/spdlog
 	url = https://github.com/gabime/spdlog.git
+[submodule "blaze/third_party/SPIRV-Cross"]
+	path = blaze/third_party/SPIRV-Cross
+	url = https://github.com/KhronosGroup/SPIRV-Cross.git

@@ -2,13 +2,11 @@
     "stages": [
         {
             "file": "sandbox:shaders/texture.vert.spv",
-            "type": "vertex",
-            "entry": "main"
+            "type": "vertex"
         },
         {
             "file": "sandbox:shaders/texture.frag.spv",
-            "type": "fragment",
-            "entry": "main"
+            "type": "fragment"
         }
     ],
     "bindings": [
@@ -29,7 +27,6 @@
             ]
         }
     ],
-    "layouts": [],
     "topology": "triangle_list",
     "line_width": 1.0,
     "attachments": [
