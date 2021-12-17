@@ -15,6 +15,8 @@ add_library(blaze STATIC
 
     src/Graphics.hpp
     src/Graphics.cpp
+    src/Screen.cpp
+    src/Screen.hpp
     src/Display.cpp
     src/Display.hpp
     src/CommandPool.cpp

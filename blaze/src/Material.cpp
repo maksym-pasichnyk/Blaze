@@ -617,7 +617,7 @@ struct Material::Impl {
                 .flags  = {},
                 .stage  = stage.at("type"),
                 .module = Blaze::GetLogicalDevice().createShaderModule(moduleCreateInfo),
-                .pName = glsl.get_entry_points_and_stages()[0].name.c_str()
+                .pName = "main" //glsl.get_entry_points_and_stages()[0].name.c_str()
             };
             stages.emplace_back(stageCreateInfo);
 
