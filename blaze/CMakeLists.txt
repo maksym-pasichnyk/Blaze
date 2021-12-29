@@ -83,9 +83,10 @@ target_compile_definitions(imgui PUBLIC -DIMGUI_DEFINE_MATH_OPERATORS)
 
 add_subdirectory(third_party/glm)
 add_subdirectory(third_party/spdlog)
+add_subdirectory(third_party/optional)
 add_subdirectory(third_party/range-v3)
-add_subdirectory(third_party/VulkanMemoryAllocator)
 add_subdirectory(third_party/SPIRV-Cross)
+add_subdirectory(third_party/VulkanMemoryAllocator)
 
 if (CMAKE_SYSTEM_NAME MATCHES "Windows")
     add_subdirectory(third_party/glfw)
@@ -129,6 +130,7 @@ target_link_libraries(blaze
         imgui
         spdlog
         range-v3
+        tl::optional
         Vulkan::Vulkan
         VulkanMemoryAllocator
     PRIVATE

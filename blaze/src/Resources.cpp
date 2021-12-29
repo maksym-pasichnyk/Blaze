@@ -16,7 +16,7 @@ static auto resolve(const std::string& filename) -> std::filesystem::path {
     return std::filesystem::path(filename.substr(0, pos)) / "assets" / filename.substr(pos + 1);
 }
 
-auto Resources::get(const std::string& filename) -> std::optional<Resource> {
+auto Resources::get(const std::string& filename) -> tl::optional<Resource> {
 #if __ANDROID__
     extern auto AndroidPlatform_getAssets() -> AAssetManager*;
 
@@ -35,7 +35,7 @@ auto Resources::get(const std::string& filename) -> std::optional<Resource> {
 
     if (!std::filesystem::exists(path)) {
         spdlog::warn("Resource '{}' not found", filename);
-        return std::nullopt;
+        return tl::nullopt;
     }
 
     const auto file_size = std::filesystem::file_size(path);

@@ -2,10 +2,10 @@
 
 #include "Resource.hpp"
 
-#include <optional>
 #include <string>
+#include <tl/optional.hpp>
 
 struct InputStream;
 struct Resources {
-    static auto get(const std::string& filename) -> std::optional<Resource>;
+    static auto get(const std::string& filename) -> tl::optional<Resource>;
 };
