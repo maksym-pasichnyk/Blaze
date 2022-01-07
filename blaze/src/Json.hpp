@@ -9,7 +9,7 @@
 #include <cassert>
 #include <variant>
 #include <numeric>
-#include <optional>
+#include <Iter.hpp>
 #include <streambuf>
 #include <type_traits>
 #include <unordered_map>
@@ -203,14 +203,18 @@ private:
 template<typename T, size_t N>
 struct Json::From<std::array<T, N>> {
 	static auto from(const std::array<T, N>& elements) -> Json {
-		return elements | ranges::views::transform([](auto element) -> Json { return std::move(element); }) | ranges::to_vector;
+        return cpp_iter(elements)
+            .map([](auto element) -> Json { return std::move(element); })
+            .collect();
 	}
 };
 
 template<typename T>
 struct Json::From<std::vector<T>> {
 	static auto from(const std::vector<T> &elements) -> Json {
-		return elements | ranges::views::transform([](auto element) -> Json { return std::move(element); }) | ranges::to_vector;
+        return cpp_iter(elements)
+            .map([](auto element) -> Json { return std::move(element); })
+            .collect();
 	}
 };
 
@@ -259,7 +263,9 @@ struct Json::Into<std::vector<T>> {
             return std::vector<T>{obj};
         }
 		return obj.as_array().map([](auto&& o) {
-            return o | ranges::views::transform([](const auto& element) -> T { return element; }) | ranges::to<std::vector<T>>();
+            return cpp_iter(std::forward<decltype(o)>(o))
+               .map([](const auto& element) -> T { return element; })
+               .collect();
         });
 	}
 };
