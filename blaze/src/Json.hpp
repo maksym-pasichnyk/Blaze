@@ -29,7 +29,7 @@ struct Json {
 	using Number = std::variant<int64_t, double>;
 	using String = std::string;
 	using Array = std::vector<Json>;
-	using Object = std::map<std::string, Json>;
+	using Object = std::unordered_map<std::string, Json>;
 
 	using Value = std::variant<
 		Null,
@@ -200,37 +200,6 @@ private:
 	Value m_storage;
 };
 
-template<>
-inline auto Json::From<bool>::from(const bool& val) -> Json {
-    return Json::Bool{val};
-}
-
-template <typename T> requires (
-	std::is_same_v<T, int8_t> ||
-	std::is_same_v<T, int16_t> ||
-	std::is_same_v<T, int32_t> ||
-	std::is_same_v<T, int64_t> ||
-	std::is_same_v<T, uint8_t> ||
-	std::is_same_v<T, uint16_t> ||
-	std::is_same_v<T, uint32_t> ||
-	std::is_same_v<T, uint64_t>
-)
-struct Json::From<T> {
-	static auto from(const T& val) -> Json {
-		return Json::Number{static_cast<int64_t>(val)};
-	}
-};
-
-template <typename T> requires (
-    std::is_same_v<T, float> ||
-    std::is_same_v<T, double>
-)
-struct Json::From<T> {
-    auto from(const T &val) -> Json {
-        return Json::Number{static_cast<double>(val)};
-    }
-};
-
 template<typename T, size_t N>
 struct Json::From<std::array<T, N>> {
 	static auto from(const std::array<T, N>& elements) -> Json {
@@ -293,6 +262,19 @@ struct Json::Into<std::vector<T>> {
             return o | ranges::views::transform([](const auto& element) -> T { return element; }) | ranges::to<std::vector<T>>();
         });
 	}
+};
+
+template<typename K, typename V>
+struct Json::Into<std::vector<std::pair<K, V>>> {
+    static auto into(const Self& self) -> tl::optional<std::vector<std::pair<K, V>>> {
+        return self.as_object().map([](auto&& o) {
+            auto out = std::vector<std::pair<K, V>>{};
+            for (auto&& [k, v] : o) {
+                out.emplace_back(Json(k), v);
+            }
+            return out;
+        });
+    }
 };
 
 struct Json::Read {

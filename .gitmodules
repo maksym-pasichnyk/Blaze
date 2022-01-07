@@ -22,3 +22,6 @@
 [submodule "blaze/third_party/optional"]
 	path = blaze/third_party/optional
 	url = https://github.com/TartanLlama/optional.git
+[submodule "blaze/third_party/physfs"]
+	path = blaze/third_party/physfs
+	url = https://github.com/icculus/physfs.git

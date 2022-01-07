@@ -2,7 +2,9 @@ cmake_minimum_required(VERSION 3.18)
 project(blaze)
 
 set(CMAKE_CXX_STANDARD 20)
+set(PHYSFS_TARGETNAME_UNINSTALL physfs_uninstall)
 
+option(PHYSFS_BUILD_SHARED FALSE)
 option(VMA_STATIC_VULKAN_FUNCTIONS OFF)
 option(VMA_DYNAMIC_VULKAN_FUNCTIONS OFF)
 
@@ -59,6 +61,7 @@ add_library(blaze STATIC
 target_include_directories(blaze
     PUBLIC
         "${CMAKE_CURRENT_SOURCE_DIR}/src"
+        "${CMAKE_CURRENT_SOURCE_DIR}/third_party/physfs/src"
     PRIVATE
         "${CMAKE_CURRENT_SOURCE_DIR}/internal"
 )
@@ -83,6 +86,7 @@ target_compile_definitions(imgui PUBLIC -DIMGUI_DEFINE_MATH_OPERATORS)
 
 add_subdirectory(third_party/glm)
 add_subdirectory(third_party/spdlog)
+add_subdirectory(third_party/physfs)
 add_subdirectory(third_party/optional)
 add_subdirectory(third_party/range-v3)
 add_subdirectory(third_party/SPIRV-Cross)
@@ -131,6 +135,7 @@ target_link_libraries(blaze
         spdlog
         range-v3
         tl::optional
+        physfs-static
         Vulkan::Vulkan
         VulkanMemoryAllocator
     PRIVATE

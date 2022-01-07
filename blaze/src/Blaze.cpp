@@ -15,9 +15,9 @@ struct VulkanRenderer {
 };
 
 static std::unique_ptr<Display> display;
+static std::unique_ptr<Input> input;
 static std::unique_ptr<VulkanGfxDevice> device;
 static std::unique_ptr<VulkanRenderer> renderer;
-static std::unique_ptr<Input> input;
 static std::unique_ptr<UserInterface> ui;
 static std::unique_ptr<Blaze::Engine> engine;
 
@@ -126,12 +126,14 @@ auto main(int argc, char* argv[]) -> int {
     ui = std::make_unique<UserInterface>(renderer->swapchain.getFrameCount());
     engine = std::make_unique<Blaze::Engine>();
 
-    engine->Run(*Blaze::CreateApplication());
+    std::atexit([] {
+        ui.reset();
+        renderer.reset();
+        device.reset();
+        input.reset();
+        display.reset();
+    });
 
-    ui.reset();
-    renderer.reset();
-    input.reset();
-    device.reset();
-    display.reset();
+    engine->Run(*Blaze::CreateApplication());
     return 0;
 }

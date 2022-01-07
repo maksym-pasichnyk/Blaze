@@ -146,11 +146,9 @@ VulkanGfxDevice::VulkanGfxDevice(Display& display) {
 
 VulkanGfxDevice::~VulkanGfxDevice() {
     vmaDestroyAllocator(_allocator);
-
     _logicalDevice.destroy();
-
-    _instance.destroyDebugUtilsMessengerEXT(_debugUtils);
     _instance.destroySurfaceKHR(_surface);
+	_instance.destroyDebugUtilsMessengerEXT(_debugUtils);
     _instance.destroy();
 }
 
@@ -192,7 +190,6 @@ void VulkanGfxDevice::_createInstance(Display& display) {
                        vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance,
         .pfnUserCallback = DebugCallback
     };
-
     _debugUtils = _instance.createDebugUtilsMessengerEXT(debugCreateInfo);
 }
 

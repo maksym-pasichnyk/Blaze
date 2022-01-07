@@ -40,6 +40,13 @@ struct Texture2D : protected Texture {
 
     void setPixels(std::span<const glm::u8vec4> pixels);
 
+    auto width() const -> glm::u32 {
+        return _width;
+    }
+    auto height() const -> glm::u32 {
+        return _height;
+    }
+
 private:
     glm::u32 _width{};
     glm::u32 _height{};
