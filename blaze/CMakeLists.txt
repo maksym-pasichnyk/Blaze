@@ -76,10 +76,12 @@ add_library(imgui STATIC
     third_party/imgui/imgui.h
     third_party/imgui/imconfig.h
     third_party/imgui/imgui_internal.h
+    third_party/imgui/misc/cpp/imgui_stdlib.h
     third_party/imgui/imgui.cpp
     third_party/imgui/imgui_draw.cpp
     third_party/imgui/imgui_tables.cpp
     third_party/imgui/imgui_widgets.cpp
+    third_party/imgui/misc/cpp/imgui_stdlib.cpp
 )
 target_include_directories(imgui PUBLIC third_party/imgui)
 target_compile_definitions(imgui PUBLIC -DIMGUI_DEFINE_MATH_OPERATORS)

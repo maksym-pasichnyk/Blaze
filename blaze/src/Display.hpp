@@ -16,6 +16,7 @@ struct Display {
     ~Display();
 
 public:
+    void close();
     void pollEvents();
     auto shouldClose() const -> bool;
     auto createSurface(vk::Instance instance) -> vk::SurfaceKHR;

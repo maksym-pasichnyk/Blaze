@@ -9,10 +9,14 @@ auto Input::getMouseDelta() -> glm::vec2 {
 }
 
 void Input::Update() {
-    const auto center = glm::vec2(GetDisplay().getSize()) / 2.0f;
     mousePosition = GetDisplay().getMousePosition();
-    mouseDelta = mousePosition - center;
-    GetDisplay().setMousePosition(center);
+    if (lock) {
+        const auto center = glm::vec2(GetDisplay().getSize()) / 2.0f;
+        mouseDelta = mousePosition - center;
+        GetDisplay().setMousePosition(center);
+    } else {
+        mouseDelta = {};
+    }
 
     const auto keycodes = std::array {
         KeyCode::eLeftArrow,
@@ -63,3 +67,8 @@ auto Input::isKeyUp(KeyCode keycode) -> bool {
     const auto thisFrame = GetInputDevice().thisFrameKeys.test(static_cast<int>(keycode));
     return !thisFrame && lastFrame;
 }
+
+void Input::setLock(bool flag) {
+    GetInputDevice().lock = flag;
+}
+

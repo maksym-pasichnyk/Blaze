@@ -56,11 +56,13 @@ struct Input {
     static auto isKeyPressed(KeyCode keycode) -> bool;
     static auto isKeyDown(KeyCode keycode) -> bool;
     static auto isKeyUp(KeyCode keycode) -> bool;
+    static void setLock(bool flag);
 
 private:
     void Update();
 
 private:
+    bool lock;
     glm::vec2 mouseDelta;
     glm::vec2 mousePosition;
     std::bitset<5> thisFrameMouse{};

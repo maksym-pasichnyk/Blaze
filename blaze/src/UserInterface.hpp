@@ -20,10 +20,13 @@ struct UserInterface {
     void setDisplayScale(const glm::vec2& scale);
     void setMousePosition(const glm::vec2& pos);
     void setMousePressed(int button, bool flag);
+    void setKeyPressed(int button, bool flag);
 
     void begin();
     void end();
     void draw(CommandBuffer cmd);
+
+    void AddInputCharacter(char ch);
 
 private:
     void _createFontsTexture();

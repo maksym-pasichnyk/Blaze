@@ -1,4 +1,6 @@
 #include "Display.hpp"
+#include "imgui.h"
+#include "UserInterface.hpp"
 
 //#ifdef __ANDROID__
 //#include <android/native_window.h>
@@ -82,19 +84,39 @@ Display::Display(const std::string& title, int width, int height, bool resizable
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
     _window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
-
+    glfwSetCharCallback(_window, [](GLFWwindow* window, unsigned int c) {
+        extern auto GetUserInterface() -> UserInterface&;
+        GetUserInterface().AddInputCharacter(static_cast<char>(c));
+    });
+//    glfwSetKeyCallback(_window, [] {});
     mouseButtonMapping.fill(-1);
     mouseButtonMapping[size_t(MouseButton::Left)] = GLFW_MOUSE_BUTTON_LEFT;
     mouseButtonMapping[size_t(MouseButton::Right)] = GLFW_MOUSE_BUTTON_RIGHT;
     mouseButtonMapping[size_t(MouseButton::Middle)] = GLFW_MOUSE_BUTTON_MIDDLE;
 
     keyCodeMapping.fill(-1);
-    keyCodeMapping[size_t(KeyCode::eLeftArrow)] = GLFW_KEY_A;
-    keyCodeMapping[size_t(KeyCode::eRightArrow)] = GLFW_KEY_D;
-    keyCodeMapping[size_t(KeyCode::eUpArrow)] = GLFW_KEY_W;
-    keyCodeMapping[size_t(KeyCode::eDownArrow)] = GLFW_KEY_S;
-    keyCodeMapping[size_t(KeyCode::eEscape)] = GLFW_KEY_ESCAPE;
+    keyCodeMapping[size_t(KeyCode::eTab)] = GLFW_KEY_TAB;
+    keyCodeMapping[size_t(KeyCode::eLeftArrow)] = GLFW_KEY_A;//GLFW_KEY_LEFT;
+    keyCodeMapping[size_t(KeyCode::eRightArrow)] = GLFW_KEY_D;//GLFW_KEY_RIGHT;
+    keyCodeMapping[size_t(KeyCode::eUpArrow)] = GLFW_KEY_W;//GLFW_KEY_UP;
+    keyCodeMapping[size_t(KeyCode::eDownArrow)] = GLFW_KEY_S;//GLFW_KEY_DOWN;
+    keyCodeMapping[size_t(KeyCode::ePageUp)] = GLFW_KEY_PAGE_UP;
+    keyCodeMapping[size_t(KeyCode::ePageDown)] = GLFW_KEY_PAGE_DOWN;
+    keyCodeMapping[size_t(KeyCode::eHome)] = GLFW_KEY_HOME;
+    keyCodeMapping[size_t(KeyCode::eEnd)] = GLFW_KEY_END;
+    keyCodeMapping[size_t(KeyCode::eInsert)] = GLFW_KEY_INSERT;
+    keyCodeMapping[size_t(KeyCode::eDelete)] = GLFW_KEY_DELETE;
+    keyCodeMapping[size_t(KeyCode::eBackspace)] = GLFW_KEY_BACKSPACE;
     keyCodeMapping[size_t(KeyCode::eSpace)] = GLFW_KEY_SPACE;
+    keyCodeMapping[size_t(KeyCode::eEnter)] = GLFW_KEY_ENTER;
+    keyCodeMapping[size_t(KeyCode::eEscape)] = GLFW_KEY_ESCAPE;
+    keyCodeMapping[size_t(KeyCode::eKeyPadEnter)] = GLFW_KEY_KP_ENTER;
+    keyCodeMapping[size_t(KeyCode::eA)] = GLFW_KEY_A;
+    keyCodeMapping[size_t(KeyCode::eC)] = GLFW_KEY_C;
+    keyCodeMapping[size_t(KeyCode::eV)] = GLFW_KEY_V;
+    keyCodeMapping[size_t(KeyCode::eX)] = GLFW_KEY_X;
+    keyCodeMapping[size_t(KeyCode::eY)] = GLFW_KEY_Y;
+    keyCodeMapping[size_t(KeyCode::eZ)] = GLFW_KEY_Z;
     keyCodeMapping[size_t(KeyCode::eLeftShift)] = GLFW_KEY_LEFT_SHIFT;
 }
 
@@ -104,6 +126,10 @@ Display::~Display() {
 
 auto Display::shouldClose() const -> bool {
     return glfwWindowShouldClose(_window);
+}
+
+void Display::close() {
+    glfwSetWindowShouldClose(_window, true);
 }
 
 void Display::pollEvents() {

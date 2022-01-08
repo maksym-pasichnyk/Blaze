@@ -293,5 +293,6 @@ struct Json::Read {
 };
 
 struct Json::Dump {
-	static void dump(std::ostream &out, const Json &obj, int ident = 0);
+    static void pack(std::ostream &out, const Json &obj);
+    static void dump(std::ostream &out, const Json &obj, int ident = 0);
 };

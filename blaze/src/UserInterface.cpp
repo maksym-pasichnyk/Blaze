@@ -3,6 +3,7 @@
 #include "Texture.hpp"
 #include "Blaze.hpp"
 #include "Mesh.hpp"
+#include "Input.hpp"
 
 #include <imgui.h>
 #include <glm/glm.hpp>
@@ -22,28 +23,28 @@ UserInterface::UserInterface(glm::u32 frameCount){
     _ctx->IO.BackendRendererName = "imgui_impl_vulkan";
 
     // Keyboard mapping. ImGui will use those indices to peek into the _ctx->IO.KeysDown[] array.
-//    _ctx->IO.KeyMap[ImGuiKey_Tab] = GLFW_KEY_TAB;
-//    _ctx->IO.KeyMap[ImGuiKey_LeftArrow] = GLFW_KEY_LEFT;
-//    _ctx->IO.KeyMap[ImGuiKey_RightArrow] = GLFW_KEY_RIGHT;
-//    _ctx->IO.KeyMap[ImGuiKey_UpArrow] = GLFW_KEY_UP;
-//    _ctx->IO.KeyMap[ImGuiKey_DownArrow] = GLFW_KEY_DOWN;
-//    _ctx->IO.KeyMap[ImGuiKey_PageUp] = GLFW_KEY_PAGE_UP;
-//    _ctx->IO.KeyMap[ImGuiKey_PageDown] = GLFW_KEY_PAGE_DOWN;
-//    _ctx->IO.KeyMap[ImGuiKey_Home] = GLFW_KEY_HOME;
-//    _ctx->IO.KeyMap[ImGuiKey_End] = GLFW_KEY_END;
-//    _ctx->IO.KeyMap[ImGuiKey_Insert] = GLFW_KEY_INSERT;
-//    _ctx->IO.KeyMap[ImGuiKey_Delete] = GLFW_KEY_DELETE;
-//    _ctx->IO.KeyMap[ImGuiKey_Backspace] = GLFW_KEY_BACKSPACE;
-//    _ctx->IO.KeyMap[ImGuiKey_Space] = GLFW_KEY_SPACE;
-//    _ctx->IO.KeyMap[ImGuiKey_Enter] = GLFW_KEY_ENTER;
-//    _ctx->IO.KeyMap[ImGuiKey_Escape] = GLFW_KEY_ESCAPE;
-//    _ctx->IO.KeyMap[ImGuiKey_KeyPadEnter] = GLFW_KEY_KP_ENTER;
-//    _ctx->IO.KeyMap[ImGuiKey_A] = GLFW_KEY_A;
-//    _ctx->IO.KeyMap[ImGuiKey_C] = GLFW_KEY_C;
-//    _ctx->IO.KeyMap[ImGuiKey_V] = GLFW_KEY_V;
-//    _ctx->IO.KeyMap[ImGuiKey_X] = GLFW_KEY_X;
-//    _ctx->IO.KeyMap[ImGuiKey_Y] = GLFW_KEY_Y;
-//    _ctx->IO.KeyMap[ImGuiKey_Z] = GLFW_KEY_Z;
+    _ctx->IO.KeyMap[ImGuiKey_Tab] = int(KeyCode::eTab);
+    _ctx->IO.KeyMap[ImGuiKey_LeftArrow] = int(KeyCode::eLeftArrow);
+    _ctx->IO.KeyMap[ImGuiKey_RightArrow] = int(KeyCode::eRightArrow);
+    _ctx->IO.KeyMap[ImGuiKey_UpArrow] = int(KeyCode::eUpArrow);
+    _ctx->IO.KeyMap[ImGuiKey_DownArrow] = int(KeyCode::eDownArrow);
+    _ctx->IO.KeyMap[ImGuiKey_PageUp] = int(KeyCode::ePageUp);
+    _ctx->IO.KeyMap[ImGuiKey_PageDown] = int(KeyCode::ePageDown);
+    _ctx->IO.KeyMap[ImGuiKey_Home] = int(KeyCode::eHome);
+    _ctx->IO.KeyMap[ImGuiKey_End] = int(KeyCode::eEnd);
+    _ctx->IO.KeyMap[ImGuiKey_Insert] = int(KeyCode::eInsert);
+    _ctx->IO.KeyMap[ImGuiKey_Delete] = int(KeyCode::eDelete);
+    _ctx->IO.KeyMap[ImGuiKey_Backspace] = int(KeyCode::eBackspace);
+    _ctx->IO.KeyMap[ImGuiKey_Space] = int(KeyCode::eSpace);
+    _ctx->IO.KeyMap[ImGuiKey_Enter] = int(KeyCode::eEnter);
+    _ctx->IO.KeyMap[ImGuiKey_Escape] = int(KeyCode::eEscape);
+    _ctx->IO.KeyMap[ImGuiKey_KeyPadEnter] = int(KeyCode::eKeyPadEnter);
+    _ctx->IO.KeyMap[ImGuiKey_A] = int(KeyCode::eA);
+    _ctx->IO.KeyMap[ImGuiKey_C] = int(KeyCode::eC);
+    _ctx->IO.KeyMap[ImGuiKey_V] = int(KeyCode::eV);
+    _ctx->IO.KeyMap[ImGuiKey_X] = int(KeyCode::eX);
+    _ctx->IO.KeyMap[ImGuiKey_Y] = int(KeyCode::eY);
+    _ctx->IO.KeyMap[ImGuiKey_Z] = int(KeyCode::eZ);
 
 //    _ctx->IO.SetClipboardTextFn = SetClipboardText;
 //    _ctx->IO.GetClipboardTextFn = GetClipboardText;
@@ -122,6 +123,10 @@ void UserInterface::setMousePosition(const glm::vec2& pos) {
 
 void UserInterface::setMousePressed(int button, bool flag) {
     _ctx->IO.MouseDown[button] = flag;
+}
+
+void UserInterface::setKeyPressed(int button, bool flag) {
+    _ctx->IO.KeysDown[button] = flag;
 }
 
 void UserInterface::draw(CommandBuffer cmd) {
@@ -264,4 +269,7 @@ void UserInterface::_setupRenderState(ImDrawData* draw_data, CommandBuffer cmd, 
         std::span(transform).size_bytes(),
         transform.data()
     );
+}
+void UserInterface::AddInputCharacter(char ch) {
+    _ctx->IO.AddInputCharacter(ch);
 }

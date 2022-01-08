@@ -177,7 +177,7 @@ struct Game : Blaze::Application {
         }
     }
 
-    void Render(CommandBuffer cmd) override {
+    void Draw(CommandBuffer cmd) override {
         auto block = MaterialPropertyBlock {
             .Time = iTime,
             .Resolution = iResolution,
