@@ -47,19 +47,28 @@ enum class MouseButton {
 struct Input {
     friend struct Blaze;
 
+    static void update();
+    static void setLock(bool flag);
     static auto getMouseDelta() -> glm::vec2;
     static auto getMousePosition() -> glm::ivec2;
-
-    static auto isMouseButtonPressed(MouseButton button) -> bool;
-    static auto isMouseButtonDown(MouseButton button) -> bool;
-    static auto isMouseButtonUp(MouseButton button) -> bool;
-    static auto isKeyPressed(KeyCode keycode) -> bool;
-    static auto isKeyDown(KeyCode keycode) -> bool;
     static auto isKeyUp(KeyCode keycode) -> bool;
-    static void setLock(bool flag);
+    static auto isKeyDown(KeyCode keycode) -> bool;
+    static auto isKeyPressed(KeyCode keycode) -> bool;
+    static auto isMouseButtonUp(MouseButton button) -> bool;
+    static auto isMouseButtonDown(MouseButton button) -> bool;
+    static auto isMouseButtonPressed(MouseButton button) -> bool;
 
 private:
-    void Update();
+    void _update();
+    void _setLock(bool flag);
+    auto _getMouseDelta() -> glm::vec2;
+    auto _getMousePosition() -> glm::ivec2;
+    auto _isKeyUp(KeyCode keycode) -> bool;
+    auto _isKeyDown(KeyCode keycode) -> bool;
+    auto _isKeyPressed(KeyCode keycode) -> bool;
+    auto _isMouseButtonUp(MouseButton button) -> bool;
+    auto _isMouseButtonDown(MouseButton button) -> bool;
+    auto _isMouseButtonPressed(MouseButton button) -> bool;
 
 private:
     bool lock;

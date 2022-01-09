@@ -3,6 +3,7 @@
 #include "CommandPool.hpp"
 #include "GraphicsBuffer.hpp"
 #include "Blaze.hpp"
+#include "GraphicsFence.hpp"
 
 #include <map>
 #include <VulkanTexture.hpp>

@@ -1,15 +1,9 @@
 #pragma once
 
-#include <string>
-#include <vk_mem_alloc.h>
-#include <vulkan/vulkan.hpp>
-
+#include <functional>
 #include "CommandBuffer.hpp"
-#include "CommandPool.hpp"
-#include "GraphicsFence.hpp"
 
 struct Blaze {
-    struct Engine;
     struct Application {
         virtual ~Application() = default;
 
@@ -20,10 +14,5 @@ struct Blaze {
         virtual void Draw(CommandBuffer cmd) = 0;
     };
 
-    static auto GetSwapchainRenderPass() -> vk::RenderPass;
-
-    static auto GetLogicalDevice() -> vk::Device;
-    static auto GetMemoryResource() -> VmaAllocator;
-
-    static auto CreateApplication() -> std::unique_ptr<Application>;
+    static void Start(std::function<auto() -> std::unique_ptr<Application>> const& fn);
 };

@@ -3,6 +3,7 @@
 #include "Material.hpp"
 #include "TextureData.hpp"
 #include "../../blaze/internal/VulkanGraphicsBuffer.hpp"
+#include "../../blaze/internal/VulkanMaterial.hpp"
 #include <Texture.hpp>
 #include <Time.hpp>
 
@@ -186,19 +187,20 @@ struct Game : Blaze::Application {
             .CameraRotation = iCameraRotation
         };
 
+        auto vk_material = static_cast<VulkanMaterial*>(_material.GetNativeHandlePtr());
         _constantBuffer.setData(&block, sizeof(MaterialPropertyBlock), 0);
 
         auto _cmd = *cmd;
-        _cmd.bindPipeline(vk::PipelineBindPoint::eGraphics, _material.getPipeline());
+        _cmd.bindPipeline(vk::PipelineBindPoint::eGraphics, vk_material->pipeline);
         _cmd.bindDescriptorSets(
             vk::PipelineBindPoint::eGraphics,
-            _material.getPipelineLayout(),
+            vk_material->pipelineLayout,
             0,
-            _material.getDescriptorSets(),
-            _material.getDynamicOffsets()
+            vk_material->descriptorSets,
+            vk_material->dynamicOffsets
         );
         _cmd.pushConstants(
-            _material.getPipelineLayout(),
+            vk_material->pipelineLayout,
             vk::ShaderStageFlagBits::eFragment,
             0,
             sizeof(MaterialPropertyBlock),

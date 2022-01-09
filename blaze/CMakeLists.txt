@@ -33,7 +33,6 @@ add_library(blaze STATIC
     src/Input.hpp
     src/UserInterface.cpp
     src/UserInterface.hpp
-    src/util/internal_ptr.hpp
     src/Material.hpp
     src/Resource.hpp
     src/Resources.cpp
@@ -56,7 +55,9 @@ add_library(blaze STATIC
     internal/VulkanSwapchain.hpp 
     internal/VulkanGraphicsBuffer.hpp 
     internal/VulkanCommandBuffer.hpp 
-    internal/VulkanTexture.hpp)
+    internal/VulkanTexture.hpp 
+    internal/VulkanMaterial.hpp
+)
 
 target_include_directories(blaze
     PUBLIC

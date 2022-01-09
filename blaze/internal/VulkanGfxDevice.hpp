@@ -9,6 +9,8 @@
 #include <vulkan/vulkan.hpp>
 #include <vulkan/vulkan_beta.h>
 
+struct Resource;
+
 struct VulkanGfxDevice {
 public:
     explicit VulkanGfxDevice(Display& display);
@@ -68,6 +70,11 @@ public:
     auto CreateTexture(VkImage image, VkImageView imageView, VkSampler sampler, VmaAllocation allocation) -> void*;
     void DestroyTexture(void* texture);
 
+    auto CreateMaterial(Resource const& resource) -> void*;
+    void DestroyMaterial(void* material);
+
+    void SetRenderPass(vk::RenderPass pass);
+
 private:
     vk::DynamicLoader dl;
 
@@ -85,4 +92,5 @@ private:
 
     vk::Queue _presentQueue;
     vk::Queue _graphicsQueue;
+    vk::RenderPass _renderPass;
 };

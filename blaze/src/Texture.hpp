@@ -3,7 +3,6 @@
 #include <span>
 #include <memory>
 #include <glm/glm.hpp>
-#include <util/internal_ptr.hpp>
 
 #include <vk_mem_alloc.h>
 #include <vulkan/vulkan.hpp>

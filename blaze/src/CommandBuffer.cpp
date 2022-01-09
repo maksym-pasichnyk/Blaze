@@ -1,21 +1,23 @@
 #include "CommandBuffer.hpp"
 #include "Material.hpp"
 #include "Mesh.hpp"
+#include "VulkanMaterial.hpp"
 
 #include <VulkanGraphicsBuffer.hpp>
 
 void CommandBuffer::drawMesh(const Mesh &mesh, const Material &material) {
     auto vk_vertexBuffer = static_cast<VulkanGraphicsBuffer*>(mesh.getNativeVertexBufferPtr());
     auto vk_indexBuffer = static_cast<VulkanGraphicsBuffer*>(mesh.getNativeIndexBufferPtr());
+    auto vk_material = static_cast<VulkanMaterial*>(material.GetNativeHandlePtr());
 
     auto _cmd = **this;
-    _cmd.bindPipeline(vk::PipelineBindPoint::eGraphics, material.getPipeline());
+    _cmd.bindPipeline(vk::PipelineBindPoint::eGraphics, vk_material->pipeline);
     _cmd.bindDescriptorSets(
         vk::PipelineBindPoint::eGraphics,
-        material.getPipelineLayout(),
+        vk_material->pipelineLayout,
         0,
-        material.getDescriptorSets(),
-        material.getDynamicOffsets()
+        vk_material->descriptorSets,
+        vk_material->dynamicOffsets
     );
     _cmd.bindVertexBuffers(0, vk_vertexBuffer->buffer, vk::DeviceSize{0});
     _cmd.bindIndexBuffer(vk_indexBuffer->buffer, 0, vk::IndexType::eUint32);
@@ -30,15 +32,16 @@ void CommandBuffer::drawMesh(const Mesh& mesh, const Material& material, int sub
 
     auto vk_vertexBuffer = static_cast<VulkanGraphicsBuffer*>(mesh.getNativeVertexBufferPtr());
     auto vk_indexBuffer = static_cast<VulkanGraphicsBuffer*>(mesh.getNativeIndexBufferPtr());
+    auto vk_material = static_cast<VulkanMaterial*>(material.GetNativeHandlePtr());
 
     auto _cmd = **this;
-    _cmd.bindPipeline(vk::PipelineBindPoint::eGraphics, material.getPipeline());
+    _cmd.bindPipeline(vk::PipelineBindPoint::eGraphics, vk_material->pipeline);
     _cmd.bindDescriptorSets(
         vk::PipelineBindPoint::eGraphics,
-        material.getPipelineLayout(),
+        vk_material->pipelineLayout,
         0,
-        material.getDescriptorSets(),
-        material.getDynamicOffsets()
+        vk_material->descriptorSets,
+        vk_material->dynamicOffsets
     );
     _cmd.bindVertexBuffers(0, vk_vertexBuffer->buffer, vk::DeviceSize{0});
     _cmd.bindIndexBuffer(vk_indexBuffer->buffer, 0, vk::IndexType::eUint32);

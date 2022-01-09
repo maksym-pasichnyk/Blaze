@@ -4,6 +4,7 @@
 #include "Blaze.hpp"
 #include "Mesh.hpp"
 #include "Input.hpp"
+#include "VulkanMaterial.hpp"
 
 #include <imgui.h>
 #include <glm/glm.hpp>
@@ -236,13 +237,15 @@ void UserInterface::_createFontsTexture() {
 }
 
 void UserInterface::_setupRenderState(ImDrawData* draw_data, CommandBuffer cmd, Mesh* rb, int fb_width, int fb_height) {
-    (*cmd).bindPipeline(vk::PipelineBindPoint::eGraphics, _material.getPipeline());
+    auto vk_material = static_cast<VulkanMaterial*>(_material.GetNativeHandlePtr());
+
+    (*cmd).bindPipeline(vk::PipelineBindPoint::eGraphics, vk_material->pipeline);
     (*cmd).bindDescriptorSets(
         vk::PipelineBindPoint::eGraphics,
-        _material.getPipelineLayout(),
+        vk_material->pipelineLayout,
         0,
-        _material.getDescriptorSets(),
-        _material.getDynamicOffsets()
+        vk_material->descriptorSets,
+        vk_material->dynamicOffsets
     );
 
     if (draw_data->TotalVtxCount > 0) {
@@ -263,7 +266,7 @@ void UserInterface::_setupRenderState(ImDrawData* draw_data, CommandBuffer cmd, 
     };
 
     (*cmd).pushConstants(
-        _material.getPipelineLayout(),
+        vk_material->pipelineLayout,
         vk::ShaderStageFlagBits::eVertex,
         0,
         std::span(transform).size_bytes(),
