@@ -276,3 +276,11 @@ void UserInterface::_setupRenderState(ImDrawData* draw_data, CommandBuffer cmd, 
 void UserInterface::AddInputCharacter(char ch) {
     _ctx->IO.AddInputCharacter(ch);
 }
+
+auto UserInterface::WantCaptureMouse() -> bool {
+    return _ctx->IO.WantCaptureMouse;
+}
+void UserInterface::AddScrollMouse(float x, float y) {
+    _ctx->IO.MouseWheelH += x;
+    _ctx->IO.MouseWheel += y;
+}

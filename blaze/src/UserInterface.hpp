@@ -27,6 +27,9 @@ struct UserInterface {
     void draw(CommandBuffer cmd);
 
     void AddInputCharacter(char ch);
+    auto WantCaptureMouse() -> bool;
+
+    void AddScrollMouse(float x, float y);
 
 private:
     void _createFontsTexture();

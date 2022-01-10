@@ -88,6 +88,13 @@ Display::Display(const std::string& title, int width, int height, bool resizable
         extern auto GetUserInterface() -> UserInterface&;
         GetUserInterface().AddInputCharacter(static_cast<char>(c));
     });
+    glfwSetScrollCallback(_window, [](GLFWwindow* window, double xoffset, double yoffset) {
+        extern auto GetUserInterface() -> UserInterface&;
+        GetUserInterface().AddScrollMouse(
+            static_cast<float>(xoffset),
+            static_cast<float>(yoffset)
+        );
+    });
 //    glfwSetKeyCallback(_window, [] {});
     mouseButtonMapping.fill(-1);
     mouseButtonMapping[size_t(MouseButton::Left)] = GLFW_MOUSE_BUTTON_LEFT;

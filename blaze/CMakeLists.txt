@@ -139,9 +139,9 @@ target_link_libraries(blaze
         range-v3
         tl::optional
         physfs-static
-        Vulkan::Vulkan
         VulkanMemoryAllocator
     PRIVATE
+        Vulkan::Vulkan
         spirv-cross-glsl
         spirv-cross-hlsl
         spirv-cross-cpp
