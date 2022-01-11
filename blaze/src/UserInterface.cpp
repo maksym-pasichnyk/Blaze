@@ -25,10 +25,10 @@ UserInterface::UserInterface(glm::u32 frameCount){
 
     // Keyboard mapping. ImGui will use those indices to peek into the _ctx->IO.KeysDown[] array.
     _ctx->IO.KeyMap[ImGuiKey_Tab] = int(KeyCode::eTab);
-    _ctx->IO.KeyMap[ImGuiKey_LeftArrow] = int(KeyCode::eLeftArrow);
-    _ctx->IO.KeyMap[ImGuiKey_RightArrow] = int(KeyCode::eRightArrow);
-    _ctx->IO.KeyMap[ImGuiKey_UpArrow] = int(KeyCode::eUpArrow);
-    _ctx->IO.KeyMap[ImGuiKey_DownArrow] = int(KeyCode::eDownArrow);
+    _ctx->IO.KeyMap[ImGuiKey_LeftArrow] = int(KeyCode::eLeft);
+    _ctx->IO.KeyMap[ImGuiKey_RightArrow] = int(KeyCode::eRight);
+    _ctx->IO.KeyMap[ImGuiKey_UpArrow] = int(KeyCode::eUp);
+    _ctx->IO.KeyMap[ImGuiKey_DownArrow] = int(KeyCode::eDown);
     _ctx->IO.KeyMap[ImGuiKey_PageUp] = int(KeyCode::ePageUp);
     _ctx->IO.KeyMap[ImGuiKey_PageDown] = int(KeyCode::ePageDown);
     _ctx->IO.KeyMap[ImGuiKey_Home] = int(KeyCode::eHome);

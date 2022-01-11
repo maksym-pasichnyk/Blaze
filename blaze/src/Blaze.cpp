@@ -61,10 +61,10 @@ void Blaze::Start(std::function<auto() -> std::unique_ptr<Application>> const& f
 
     constexpr auto keycodes = std::array {
         KeyCode::eTab,
-        KeyCode::eLeftArrow,
-        KeyCode::eRightArrow,
-        KeyCode::eUpArrow,
-        KeyCode::eDownArrow,
+        KeyCode::eLeft,
+        KeyCode::eRight,
+        KeyCode::eUp,
+        KeyCode::eDown,
         KeyCode::ePageUp,
         KeyCode::ePageDown,
         KeyCode::eHome,

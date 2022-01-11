@@ -31,7 +31,7 @@ public:
 
 private:
     std::array<int, 5> mouseButtonMapping;
-    std::array<int, 256> keyCodeMapping;
+    std::array<int, 128> keyCodeMapping;
 
     GLFWwindow* _window;
 };
