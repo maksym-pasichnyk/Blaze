@@ -10,7 +10,3 @@ else()
 endif()
 
 target_link_libraries(sandbox PRIVATE blaze)
-target_compile_shaders(sandbox
-    assets/shaders/texture.frag
-    assets/shaders/texture.vert
-)

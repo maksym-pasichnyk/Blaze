@@ -7,6 +7,8 @@
     <mapping directory="$PROJECT_DIR$/blaze/third_party/glfw" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/blaze/third_party/glm" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/blaze/third_party/imgui" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/blaze/third_party/optional" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/blaze/third_party/physfs" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/blaze/third_party/range-v3" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/blaze/third_party/range-v3/doc/gh-pages" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/blaze/third_party/spdlog" vcs="Git" />

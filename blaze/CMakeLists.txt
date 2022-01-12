@@ -14,6 +14,12 @@ add_library(blaze STATIC
     internal/vk_mem_alloc.cpp
     internal/VulkanGfxDevice.cpp
     internal/VulkanGfxDevice.hpp
+    internal/VulkanSwapchain.cpp
+    internal/VulkanSwapchain.hpp
+    internal/VulkanGraphicsBuffer.hpp
+    internal/VulkanCommandBuffer.hpp
+    internal/VulkanTexture.hpp
+    internal/VulkanMaterial.hpp
 
     src/Graphics.hpp
     src/Graphics.cpp
@@ -38,6 +44,7 @@ add_library(blaze STATIC
     src/Resources.cpp
     src/Resources.hpp
     src/Json.hpp
+    src/Json.cpp
     src/util/match.hpp
     src/Material.cpp
     src/Mesh.hpp
@@ -50,20 +57,14 @@ add_library(blaze STATIC
     src/Time.cpp
     src/Time.hpp
     src/GraphicsFence.cpp
-    src/GraphicsFence.hpp 
-    internal/VulkanSwapchain.cpp 
-    internal/VulkanSwapchain.hpp 
-    internal/VulkanGraphicsBuffer.hpp 
-    internal/VulkanCommandBuffer.hpp 
-    internal/VulkanTexture.hpp 
-    internal/VulkanMaterial.hpp
+    src/GraphicsFence.hpp
 )
 
 target_include_directories(blaze
     PUBLIC
         "${CMAKE_CURRENT_SOURCE_DIR}/src"
         "${CMAKE_CURRENT_SOURCE_DIR}/third_party/physfs/src"
-    PRIVATE
+#    PRIVATE
         "${CMAKE_CURRENT_SOURCE_DIR}/internal"
 )
 
@@ -140,7 +141,7 @@ target_link_libraries(blaze
         tl::optional
         physfs-static
         VulkanMemoryAllocator
-    PRIVATE
+#    PRIVATE
         Vulkan::Vulkan
         spirv-cross-glsl
         spirv-cross-hlsl
@@ -171,8 +172,3 @@ function(target_compile_shaders TARGET)
     add_custom_target(${TARGET}_shaders DEPENDS ${SPIRV_BINARY_FILES})
     add_dependencies(${TARGET} ${TARGET}_shaders)
 endfunction()
-
-target_compile_shaders(blaze
-    assets/shaders/imgui.frag
-    assets/shaders/imgui.vert
-)
