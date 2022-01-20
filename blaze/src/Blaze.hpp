@@ -14,5 +14,5 @@ struct Blaze {
         virtual void Draw(CommandBuffer cmd) = 0;
     };
 
-    static void Start(std::function<auto() -> std::unique_ptr<Application>> const& fn);
+    static void Start(std::function<std::unique_ptr<Application>()> const& fn);
 };

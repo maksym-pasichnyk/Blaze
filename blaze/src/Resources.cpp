@@ -8,12 +8,12 @@
 #include <android/asset_manager.h>
 #endif
 
-static auto resolve(const std::string& filename) -> std::filesystem::path {
+static auto resolve(const std::string& filename) -> std::string {
     const auto pos = filename.find(':');
     if (pos == std::string::npos) {
         return filename;//std::filesystem::path("assets") / filename;
     }
-    return "assets" / std::filesystem::path(filename.substr(0, pos)) / filename.substr(pos + 1);
+    return fmt::format("assets/{}/{}", filename.substr(0, pos), filename.substr(pos + 1));
 }
 
 auto Resources::get(const std::string& filename) -> tl::optional<Resource> {

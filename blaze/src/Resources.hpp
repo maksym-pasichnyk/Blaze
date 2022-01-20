@@ -3,6 +3,7 @@
 #include "Resource.hpp"
 #include "physfs.h"
 
+#include <array>
 #include <string>
 #include <istream>
 #include <tl/optional.hpp>

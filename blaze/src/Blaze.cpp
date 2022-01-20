@@ -3,10 +3,11 @@
 #include "Input.hpp"
 #include "Display.hpp"
 #include "UserInterface.hpp"
-#include "GraphicsBuffer.hpp"
 
 #include <VulkanGfxDevice.hpp>
 #include <VulkanSwapchain.hpp>
+
+#include <chrono>
 
 namespace {
     std::unique_ptr<Input> input;
@@ -37,7 +38,7 @@ auto GetUserInterface() -> UserInterface& {
     return *ui;
 }
 
-void Blaze::Start(std::function<auto() -> std::unique_ptr<Application>> const& fn) {
+void Blaze::Start(std::function<std::unique_ptr<Application>()> const& fn) {
     display = std::make_unique<Display>("Blaze", 800, 600, false);
     input = std::make_unique<Input>();
     device = std::make_unique<VulkanGfxDevice>(*display);
