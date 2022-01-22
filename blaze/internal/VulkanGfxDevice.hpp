@@ -22,9 +22,6 @@ public:
     [[nodiscard]] auto getPhysicalDevice() const -> vk::PhysicalDevice {
         return _physicalDevice;
     }
-    [[nodiscard]] auto getMemoryResource() const -> VmaAllocator {
-        return _allocator;
-    }
     [[nodiscard]] auto getPresentQueue() const -> vk::Queue {
         return _presentQueue;
     }
@@ -72,6 +69,8 @@ public:
 
     auto CreateMaterial(Resource const& resource) -> void*;
     void DestroyMaterial(void* material);
+    void SetConstantBuffer(void* material, uint32_t index, GraphicsBuffer const& buffer);
+    void SetTexture(void* material, uint32_t index, const Texture2D &texture);
 
     void SetRenderPass(vk::RenderPass pass);
 

@@ -1325,6 +1325,44 @@ void VulkanGfxDevice::DestroyMaterial(void* material) {
     delete vk_material;
 }
 
+void VulkanGfxDevice::SetConstantBuffer(void* material, uint32_t index, GraphicsBuffer const& buffer) {
+    auto vk_material = static_cast<VulkanMaterial*>(material);
+    auto vk_buffer = static_cast<VulkanGraphicsBuffer*>(buffer.getNativeBufferPtr());
+
+    const auto bufferInfo = vk::DescriptorBufferInfo {
+        .buffer = vk_buffer->buffer,
+        .offset = 0,
+        .range = static_cast<vk::DeviceSize>(buffer.getSize())
+    };
+    const auto writeDescriptorSet = vk::WriteDescriptorSet{
+        .dstSet = vk_material->descriptorSets[0],
+        .dstBinding = index,
+        .dstArrayElement = 0,
+        .descriptorCount = 1,
+        .descriptorType = vk::DescriptorType::eUniformBuffer,
+        .pBufferInfo = &bufferInfo
+    };
+    _logicalDevice.updateDescriptorSets({writeDescriptorSet}, {});
+}
+
+void VulkanGfxDevice::SetTexture(void* material, uint32_t index, const Texture2D &texture) {
+    auto vk_material = static_cast<VulkanMaterial*>(material);
+    const auto imageInfo = vk::DescriptorImageInfo{
+        .sampler = texture.getSampler(),
+        .imageView = texture.getImageView(),
+        .imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal
+    };
+    const auto writeDescriptorSet = vk::WriteDescriptorSet{
+        .dstSet = vk_material->descriptorSets[0],
+        .dstBinding = index,
+        .dstArrayElement = 0,
+        .descriptorCount = 1,
+        .descriptorType = vk::DescriptorType::eCombinedImageSampler,
+        .pImageInfo = &imageInfo
+    };
+    _logicalDevice.updateDescriptorSets({writeDescriptorSet}, {});
+}
+
 void VulkanGfxDevice::SetRenderPass(vk::RenderPass pass) {
     _renderPass = pass;
 }
