@@ -1,12 +1,10 @@
 cmake_minimum_required(VERSION 3.18)
 project(blaze)
 
-set(CMAKE_CXX_STANDARD 20)
 set(PHYSFS_TARGETNAME_UNINSTALL physfs_uninstall)
 
+set(GLFW_LIBRARY_TYPE "STATIC")
 option(PHYSFS_BUILD_SHARED FALSE)
-option(VMA_STATIC_VULKAN_FUNCTIONS OFF)
-option(VMA_DYNAMIC_VULKAN_FUNCTIONS OFF)
 
 find_package(Vulkan REQUIRED)
 
@@ -60,17 +58,26 @@ add_library(blaze STATIC
     src/GraphicsFence.hpp
 )
 
+set_target_properties(blaze PROPERTIES
+    CXX_EXTENSIONS OFF
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
+)
+
 target_include_directories(blaze
     PUBLIC
         "${CMAKE_CURRENT_SOURCE_DIR}/src"
         "${CMAKE_CURRENT_SOURCE_DIR}/third_party/physfs/src"
 #    PRIVATE
         "${CMAKE_CURRENT_SOURCE_DIR}/internal"
+        "${CMAKE_CURRENT_SOURCE_DIR}/third_party/VulkanMemoryAllocator/include"
 )
 
 target_compile_definitions(blaze PUBLIC
     -DVULKAN_HPP_NO_STRUCT_CONSTRUCTORS
     -DVULKAN_HPP_NO_UNION_CONSTRUCTORS
+    -DVMA_STATIC_VULKAN_FUNCTIONS=0
+    -DVMA_DYNAMIC_VULKAN_FUNCTIONS=1
     -DVK_NO_PROTOTYPES
 )
 
@@ -85,8 +92,18 @@ add_library(imgui STATIC
     third_party/imgui/imgui_widgets.cpp
     third_party/imgui/misc/cpp/imgui_stdlib.cpp
 )
+set_target_properties(imgui PROPERTIES
+    CXX_EXTENSIONS OFF
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
+)
 target_include_directories(imgui PUBLIC third_party/imgui)
 target_compile_definitions(imgui PUBLIC -DIMGUI_DEFINE_MATH_OPERATORS)
+
+if(WIN32)
+    target_compile_options(blaze PRIVATE "/MP")
+    target_compile_options(imgui PRIVATE "/MP")
+endif()
 
 add_subdirectory(third_party/glm)
 add_subdirectory(third_party/spdlog)
@@ -94,7 +111,6 @@ add_subdirectory(third_party/physfs)
 add_subdirectory(third_party/optional)
 add_subdirectory(third_party/range-v3)
 add_subdirectory(third_party/SPIRV-Cross)
-add_subdirectory(third_party/VulkanMemoryAllocator)
 
 if (CMAKE_SYSTEM_NAME MATCHES "Windows")
     add_subdirectory(third_party/glfw)
@@ -140,7 +156,6 @@ target_link_libraries(blaze
         range-v3
         tl::optional
         physfs-static
-        VulkanMemoryAllocator
 #    PRIVATE
         Vulkan::Vulkan
         spirv-cross-glsl
