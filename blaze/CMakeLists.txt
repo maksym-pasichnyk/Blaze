@@ -1,12 +1,45 @@
 cmake_minimum_required(VERSION 3.18)
 project(blaze)
 
-set(PHYSFS_TARGETNAME_UNINSTALL physfs_uninstall)
+include(FetchContent)
 
 set(GLFW_LIBRARY_TYPE "STATIC")
-option(PHYSFS_BUILD_SHARED FALSE)
+set(PHYSFS_BUILD_SHARED FALSE)
+set(PHYSFS_TARGETNAME_UNINSTALL physfs_uninstall)
 
 find_package(Vulkan REQUIRED)
+
+FetchContent_Declare(range-v3
+    GIT_REPOSITORY https://github.com/ericniebler/range-v3.git
+)
+FetchContent_Declare(SPIRV-Cross
+    GIT_REPOSITORY https://github.com/KhronosGroup/SPIRV-Cross.git
+)
+FetchContent_Declare(optional
+    GIT_REPOSITORY https://github.com/TartanLlama/optional.git
+)
+FetchContent_Declare(physfs
+    GIT_REPOSITORY https://github.com/icculus/physfs.git
+    GIT_TAG main
+)
+FetchContent_Declare(glm
+    GIT_REPOSITORY https://github.com/g-truc/glm.git
+)
+FetchContent_Declare(spdlog
+    GIT_REPOSITORY https://github.com/gabime/spdlog.git
+    GIT_TAG v1.x
+)
+FetchContent_Declare(imgui
+    GIT_REPOSITORY https://github.com/ocornut/imgui.git
+)
+FetchContent_Declare(glfw
+    GIT_REPOSITORY https://github.com/glfw/glfw.git
+)
+FetchContent_Declare(VulkanMemoryAllocator
+    GIT_REPOSITORY https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git
+)
+
+FetchContent_MakeAvailable(range-v3 SPIRV-Cross optional physfs glm spdlog imgui glfw VulkanMemoryAllocator)
 
 add_library(blaze STATIC
     internal/vk_mem_alloc.cpp
@@ -66,11 +99,11 @@ set_target_properties(blaze PROPERTIES
 
 target_include_directories(blaze
     PUBLIC
+        "${physfs_SOURCE_DIR}/src"
         "${CMAKE_CURRENT_SOURCE_DIR}/src"
-        "${CMAKE_CURRENT_SOURCE_DIR}/third_party/physfs/src"
 #    PRIVATE
         "${CMAKE_CURRENT_SOURCE_DIR}/internal"
-        "${CMAKE_CURRENT_SOURCE_DIR}/third_party/VulkanMemoryAllocator/include"
+        "${VulkanMemoryAllocator_SOURCE_DIR}/include"
 )
 
 target_compile_definitions(blaze PUBLIC
@@ -82,22 +115,22 @@ target_compile_definitions(blaze PUBLIC
 )
 
 add_library(imgui STATIC
-    third_party/imgui/imgui.h
-    third_party/imgui/imconfig.h
-    third_party/imgui/imgui_internal.h
-    third_party/imgui/misc/cpp/imgui_stdlib.h
-    third_party/imgui/imgui.cpp
-    third_party/imgui/imgui_draw.cpp
-    third_party/imgui/imgui_tables.cpp
-    third_party/imgui/imgui_widgets.cpp
-    third_party/imgui/misc/cpp/imgui_stdlib.cpp
+    "${imgui_SOURCE_DIR}/imgui.h"
+    "${imgui_SOURCE_DIR}/imconfig.h"
+    "${imgui_SOURCE_DIR}/imgui_internal.h"
+    "${imgui_SOURCE_DIR}/misc/cpp/imgui_stdlib.h"
+    "${imgui_SOURCE_DIR}/imgui.cpp"
+    "${imgui_SOURCE_DIR}/imgui_draw.cpp"
+    "${imgui_SOURCE_DIR}/imgui_tables.cpp"
+    "${imgui_SOURCE_DIR}/imgui_widgets.cpp"
+    "${imgui_SOURCE_DIR}/misc/cpp/imgui_stdlib.cpp"
 )
 set_target_properties(imgui PROPERTIES
     CXX_EXTENSIONS OFF
     CXX_STANDARD 20
     CXX_STANDARD_REQUIRED ON
 )
-target_include_directories(imgui PUBLIC third_party/imgui)
+target_include_directories(imgui PUBLIC "${imgui_SOURCE_DIR}")
 target_compile_definitions(imgui PUBLIC -DIMGUI_DEFINE_MATH_OPERATORS)
 
 if(WIN32)
@@ -105,15 +138,7 @@ if(WIN32)
     target_compile_options(imgui PRIVATE "/MP")
 endif()
 
-add_subdirectory(third_party/glm)
-add_subdirectory(third_party/spdlog)
-add_subdirectory(third_party/physfs)
-add_subdirectory(third_party/optional)
-add_subdirectory(third_party/range-v3)
-add_subdirectory(third_party/SPIRV-Cross)
-
 if (CMAKE_SYSTEM_NAME MATCHES "Windows")
-    add_subdirectory(third_party/glfw)
     target_link_libraries(blaze PRIVATE glfw)
 
     target_compile_definitions(blaze PUBLIC
@@ -124,7 +149,6 @@ if (CMAKE_SYSTEM_NAME MATCHES "Windows")
         -DVK_USE_PLATFORM_WIN32_KHR
     )
 elseif (CMAKE_SYSTEM_NAME MATCHES "Linux")
-    add_subdirectory(third_party/glfw)
     target_compile_definitions(blaze PUBLIC
         -DVK_USE_PLATFORM_XCB_KHR
     )
@@ -139,7 +163,6 @@ elseif (CMAKE_SYSTEM_NAME MATCHES "Android")
 else()
     message("System: ${CMAKE_SYSTEM_NAME}")
 
-    add_subdirectory(third_party/glfw)
     target_link_libraries(blaze PRIVATE glfw)
 
     target_compile_definitions(blaze PUBLIC
