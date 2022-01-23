@@ -76,7 +76,7 @@ add_library(blaze STATIC
     src/Resources.hpp
     src/Json.hpp
     src/Json.cpp
-    src/util/match.hpp
+    src/Utility.hpp
     src/Material.cpp
     src/Mesh.hpp
     src/CommandBuffer.cpp

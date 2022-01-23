@@ -9,22 +9,20 @@ struct Signal;
 
 template<typename... Args>
 struct Signal<void(Args...)> {
-    using Delegate = ::Delegate<void(Args...)>;
+    using delegate = Delegate<void(Args...)>;
 
     template<auto fn, typename Self>
-    inline void connect(Self* self) {
-        auto delegate = Delegate{};
-        delegate.template bind<fn>(self);
-        delegates.emplace_back(delegate);
+    inline void connect(Self *self) {
+        connect(self, as_static_function<fn>());
     }
 
     inline void connect(void(*fn)(Args...)) {
-        delegates.emplace_back(Delegate{fn});
+        delegates.emplace_back(delegate{fn});
     }
 
     template<typename T, typename Self>
-    inline void connect(T* self, void(*fn)(Self*, Args...)) {
-        delegates.emplace_back(Delegate{self, fn});
+    inline void connect(T *self, void(*fn)(Self *, Args...)) {
+        delegates.emplace_back(delegate{self, fn});
     }
 
     inline void clear() {
@@ -32,7 +30,7 @@ struct Signal<void(Args...)> {
     }
 
     template<typename... FwdArgs>
-    inline void operator()(FwdArgs&&... args) const {
+    inline void operator()(FwdArgs &&... args) const {
         for (auto fn = delegates.begin(); fn != delegates.end(); ++fn) {
             (*fn)(args...);
         }
@@ -47,5 +45,5 @@ struct Signal<void(Args...)> {
     }
 
 private:
-    std::list<Delegate> delegates;
+    std::list<delegate> delegates;
 };

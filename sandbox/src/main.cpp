@@ -310,7 +310,7 @@ struct Game : Blaze::Application {
         _cmd.bindVertexBuffers(0, vtx_ptr->buffer, vk::DeviceSize{0});
         _cmd.bindIndexBuffer(idx_ptr->buffer, 0, vk::IndexType::eUint32);
         _cmd.drawIndexed(_mesh.getIndexCount(), 1, 0, 0, 0);
-        cmd.drawMesh(_mesh, _material);
+//        cmd.drawMesh(_mesh, _material);
 
 //        glm::f32 title = 20;
 //        glm::vec2 pos{100, 100};
