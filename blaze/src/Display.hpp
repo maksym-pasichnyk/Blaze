@@ -10,6 +10,8 @@
 #include <glm/vec2.hpp>
 #include <vulkan/vulkan.hpp>
 
+#include <Signal.hpp>
+
 struct GLFWwindow;
 struct Display {
     Display(const std::string& title, int width, int height, bool resizable);
@@ -28,6 +30,9 @@ public:
     void setMousePosition(const glm::vec2& pos);
     auto getMousePressed(MouseButton button) const -> bool;
     auto getKeyPressed(KeyCode keycode) const -> bool;
+
+    Signal<void(char c)> OnCharCallback;
+    Signal<void(float x, float y)> OnScrollCallback;
 
 private:
     std::array<int, 5> mouseButtonMapping;

@@ -8,6 +8,7 @@
 #include <VulkanSwapchain.hpp>
 
 #include <chrono>
+#include <imgui.h>
 
 namespace {
     std::unique_ptr<Input> input;
@@ -45,6 +46,13 @@ void Blaze::Start(std::function<std::unique_ptr<Application>()> const& fn) {
     swapchain = std::make_unique<VulkanSwapchain>(*device);
     device->SetRenderPass(swapchain->getRenderPass());
     ui = std::make_unique<UserInterface>(swapchain->getFrameCount());
+
+    display->OnCharCallback.connect([](char c) {
+        ui->AddInputCharacter(c);
+    });
+    display->OnScrollCallback.connect([](float x, float y) {
+        ui->AddScrollMouse(x, y);
+    });
 
     std::atexit([] {
         ui.reset();
@@ -94,31 +102,33 @@ void Blaze::Start(std::function<std::unique_ptr<Application>()> const& fn) {
         deltaTime = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - lastTime).count();
         lastTime = currentTime;
 
+        ui->SetCurrentContext();
+
         display->pollEvents();
 
         Input::update();
 
-        ui->setDisplayScale(display->getScale());
-        ui->setDisplaySize(display->getSize());
-        ui->setDeltaTime(Time::getDeltaTime());
-        ui->setMousePosition(Input::getMousePosition());
+        ui->SetDisplayScale(display->getScale());
+        ui->SetDisplaySize(display->getSize());
+        ui->SetDeltaTime(Time::getDeltaTime());
+        ui->SetMousePosition(Input::getMousePosition());
 
         for (auto button : buttons) {
-            ui->setMousePressed(int(button), display->getMousePressed(button));
+            ui->SetMousePressed(int(button), display->getMousePressed(button));
         }
         for (auto keycode : keycodes) {
-            ui->setKeyPressed(int(keycode), display->getKeyPressed(keycode));
+            ui->SetKeyPressed(int(keycode), display->getKeyPressed(keycode));
         }
 
         app->Update();
 
-        ui->begin();
+        ImGui::NewFrame();
         app->DrawUI();
-        ui->end();
+        ImGui::Render();
 
         auto cmd = swapchain->begin(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f), 1.0f, 0);
         app->Draw(cmd);
-        ui->draw(cmd);
+        ui->Draw(cmd);
         swapchain->present();
     }
     device->WaitIdle();

@@ -89,6 +89,8 @@ add_library(blaze STATIC
     src/Time.hpp
     src/GraphicsFence.cpp
     src/GraphicsFence.hpp
+    src/Signal.hpp
+    src/Delegate.hpp
 )
 
 set_target_properties(blaze PROPERTIES

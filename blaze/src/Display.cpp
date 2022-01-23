@@ -77,6 +77,8 @@
 //};
 //#endif
 
+extern auto GetDisplay() -> Display&;
+
 Display::Display(const std::string& title, int width, int height, bool resizable) {
     glfwInit();
     glfwDefaultWindowHints();
@@ -85,12 +87,10 @@ Display::Display(const std::string& title, int width, int height, bool resizable
 
     _window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
     glfwSetCharCallback(_window, [](GLFWwindow* window, unsigned int c) {
-        extern auto GetUserInterface() -> UserInterface&;
-        GetUserInterface().AddInputCharacter(static_cast<char>(c));
+        GetDisplay().OnCharCallback(static_cast<char>(c));
     });
     glfwSetScrollCallback(_window, [](GLFWwindow* window, double xoffset, double yoffset) {
-        extern auto GetUserInterface() -> UserInterface&;
-        GetUserInterface().AddScrollMouse(
+        GetDisplay().OnScrollCallback(
             static_cast<float>(xoffset),
             static_cast<float>(yoffset)
         );

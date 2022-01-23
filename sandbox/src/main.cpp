@@ -276,41 +276,41 @@ struct Game : Blaze::Application {
     }
 
     void Draw(CommandBuffer cmd) override {
-//        auto block = MaterialPropertyBlock {
-//            .Time = iTime,
-//            .Resolution = iResolution,
-//            .LightPosition = iLightPosition,
-//            .CameraPosition = iCameraPosition,
-//            .CameraRotation = iCameraRotation
-//        };
-//
-//        auto vk_material = static_cast<VulkanMaterial*>(_material.GetNativeHandlePtr());
-//        _constantBuffer.setData(&block, sizeof(MaterialPropertyBlock), 0);
-//
-//        auto _cmd = *cmd;
-//        _cmd.bindPipeline(vk::PipelineBindPoint::eGraphics, vk_material->pipeline);
-//        _cmd.bindDescriptorSets(
-//            vk::PipelineBindPoint::eGraphics,
-//            vk_material->pipelineLayout,
-//            0,
-//            vk_material->descriptorSets,
-//            vk_material->dynamicOffsets
-//        );
-//        _cmd.pushConstants(
-//            vk_material->pipelineLayout,
-//            vk::ShaderStageFlagBits::eFragment,
-//            0,
-//            sizeof(MaterialPropertyBlock),
-//            &block
-//        );
-//
-//        auto vtx_ptr = static_cast<VulkanGraphicsBuffer*>(_mesh.getNativeVertexBufferPtr());
-//        auto idx_ptr = static_cast<VulkanGraphicsBuffer*>(_mesh.getNativeIndexBufferPtr());
-//
-//        _cmd.bindVertexBuffers(0, vtx_ptr->buffer, vk::DeviceSize{0});
-//        _cmd.bindIndexBuffer(idx_ptr->buffer, 0, vk::IndexType::eUint32);
-//        _cmd.drawIndexed(_mesh.getIndexCount(), 1, 0, 0, 0);
-//        cmd.drawMesh(_mesh, _material);
+        auto block = MaterialPropertyBlock {
+            .Time = iTime,
+            .Resolution = iResolution,
+            .LightPosition = iLightPosition,
+            .CameraPosition = iCameraPosition,
+            .CameraRotation = iCameraRotation
+        };
+
+        auto vk_material = static_cast<VulkanMaterial*>(_material.GetNativeHandlePtr());
+        _constantBuffer.setData(&block, sizeof(MaterialPropertyBlock), 0);
+
+        auto _cmd = *cmd;
+        _cmd.bindPipeline(vk::PipelineBindPoint::eGraphics, vk_material->pipeline);
+        _cmd.bindDescriptorSets(
+            vk::PipelineBindPoint::eGraphics,
+            vk_material->pipelineLayout,
+            0,
+            vk_material->descriptorSets,
+            vk_material->dynamicOffsets
+        );
+        _cmd.pushConstants(
+            vk_material->pipelineLayout,
+            vk::ShaderStageFlagBits::eFragment,
+            0,
+            sizeof(MaterialPropertyBlock),
+            &block
+        );
+
+        auto vtx_ptr = static_cast<VulkanGraphicsBuffer*>(_mesh.getNativeVertexBufferPtr());
+        auto idx_ptr = static_cast<VulkanGraphicsBuffer*>(_mesh.getNativeIndexBufferPtr());
+
+        _cmd.bindVertexBuffers(0, vtx_ptr->buffer, vk::DeviceSize{0});
+        _cmd.bindIndexBuffer(idx_ptr->buffer, 0, vk::IndexType::eUint32);
+        _cmd.drawIndexed(_mesh.getIndexCount(), 1, 0, 0, 0);
+        cmd.drawMesh(_mesh, _material);
 
 //        glm::f32 title = 20;
 //        glm::vec2 pos{100, 100};
@@ -322,24 +322,24 @@ struct Game : Blaze::Application {
 //        gfx->Rect(10, 10, Screen::getSize().x - 10, Screen::getSize().y - 10, glm::u8vec4(255, 0, 0, 255));
 //        gfx->Rect(20, 20, Screen::getSize().x - 20, Screen::getSize().y - 20, glm::u8vec4(0, 255, 0, 255));
 //        gfx->Rect(30, 30, Screen::getSize().x - 30, Screen::getSize().y - 30, glm::u8vec4(0, 0, 255, 255));
-
+//
 //        gfx->Flush();
 //        gfx->Draw(cmd);
     }
 
     void DrawUI() override {
-//        ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
-//        ImGui::SetNextWindowSize(ImVec2(200, 100), ImGuiCond_Always);
-//        ImGui::Begin("Info");
-//        ImGui::TextUnformatted(fmt::format("DeltaTime: {:.3}s", Time::getDeltaTime()).c_str());
+        ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
+        ImGui::SetNextWindowSize(ImVec2(200, 100), ImGuiCond_Always);
+        ImGui::Begin("Info");
+        ImGui::TextUnformatted(fmt::format("DeltaTime: {:.3}s", Time::getDeltaTime()).c_str());
 //        ImGui::Checkbox("Multithreading", &_multithreading);
-//        ImGui::End();
+        ImGui::End();
     }
 };
 
 auto main() -> int {
     PHYSFS_init(nullptr);
-    PHYSFS_mount(std::filesystem::current_path().c_str(), nullptr, 1);
+    PHYSFS_mount(std::filesystem::current_path().string().c_str(), nullptr, 1);
     Blaze::Start([]() -> std::unique_ptr<Blaze::Application> {
         return std::make_unique<Game>();
     });

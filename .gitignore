@@ -4,4 +4,8 @@ out/
 lib/
 bin/
 
+imgui.ini
+
 *.spv
+.idea/workspace.xml
+.idea/vcs.xml

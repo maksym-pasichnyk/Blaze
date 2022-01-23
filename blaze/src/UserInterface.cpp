@@ -12,7 +12,7 @@
 #include <vulkan/vulkan.hpp>
 #include <VulkanGraphicsBuffer.hpp>
 
-UserInterface::UserInterface(glm::u32 frameCount){
+UserInterface::UserInterface(size_t frameCount) {
     IMGUI_CHECKVERSION();
     _ctx = ImGui::CreateContext();
 
@@ -97,40 +97,40 @@ UserInterface::~UserInterface() {
     _frames.clear();
 }
 
-void UserInterface::setDisplaySize(const glm::ivec2& size) {
+void UserInterface::SetDisplaySize(const glm::ivec2& size) {
     _ctx->IO.DisplaySize = {
         static_cast<float>(size.x),
         static_cast<float>(size.y)
     };
 }
 
-void UserInterface::setDisplayScale(const glm::vec2& scale) {
+void UserInterface::SetDisplayScale(const glm::vec2& scale) {
     _ctx->IO.DisplayFramebufferScale = {
         scale.x,
         scale.y
     };
 }
 
-void UserInterface::setDeltaTime(float delta) {
+void UserInterface::SetDeltaTime(float delta) {
     _ctx->IO.DeltaTime = delta;
 }
 
-void UserInterface::setMousePosition(const glm::vec2& pos) {
+void UserInterface::SetMousePosition(const glm::vec2& pos) {
     _ctx->IO.MousePos = {
         pos.x,
         pos.y
     };
 }
 
-void UserInterface::setMousePressed(int button, bool flag) {
+void UserInterface::SetMousePressed(int button, bool flag) {
     _ctx->IO.MouseDown[button] = flag;
 }
 
-void UserInterface::setKeyPressed(int button, bool flag) {
+void UserInterface::SetKeyPressed(int button, bool flag) {
     _ctx->IO.KeysDown[button] = flag;
 }
 
-void UserInterface::draw(CommandBuffer cmd) {
+void UserInterface::Draw(CommandBuffer cmd) {
     const auto viewport = _ctx->Viewports[0];
     if (!viewport->DrawDataP.Valid) {
         return;
@@ -143,9 +143,9 @@ void UserInterface::draw(CommandBuffer cmd) {
     const auto displayScale = drawData->FramebufferScale;
     const auto displayRect = ImRect(displayPos, displayPos + displaySize);
 
-    const auto fbSize = displaySize * displayScale;
-    const auto fb_width = static_cast<int>(fbSize.x);
-    const auto fb_height = static_cast<int>(fbSize.y);
+    const auto fb_size = displaySize * displayScale;
+    const auto fb_width = static_cast<int>(fb_size.x);
+    const auto fb_height = static_cast<int>(fb_size.y);
     if (fb_width <= 0 || fb_height <= 0) {
         return;
     }
@@ -216,16 +216,6 @@ void UserInterface::draw(CommandBuffer cmd) {
     _frameIndex = (_frameIndex + 1) % _frameCount;
 }
 
-void UserInterface::begin() {
-    ImGui::SetCurrentContext(_ctx);
-    ImGui::NewFrame();
-}
-
-void UserInterface::end() {
-    ImGui::Render();
-    ImGui::SetCurrentContext(nullptr);
-}
-
 void UserInterface::_createFontsTexture() {
     uint8_t *pixels;
     int width, height;
@@ -273,13 +263,19 @@ void UserInterface::_setupRenderState(ImDrawData* draw_data, CommandBuffer cmd, 
         transform.data()
     );
 }
-void UserInterface::AddInputCharacter(char ch) {
-    _ctx->IO.AddInputCharacter(ch);
+
+void UserInterface::SetCurrentContext() {
+    ImGui::SetCurrentContext(_ctx);
 }
 
 auto UserInterface::WantCaptureMouse() -> bool {
     return _ctx->IO.WantCaptureMouse;
 }
+
+void UserInterface::AddInputCharacter(char ch) {
+    _ctx->IO.AddInputCharacter(ch);
+}
+
 void UserInterface::AddScrollMouse(float x, float y) {
     _ctx->IO.MouseWheelH += x;
     _ctx->IO.MouseWheel += y;

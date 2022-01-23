@@ -12,23 +12,21 @@
 struct ImDrawData;
 struct ImGuiContext;
 struct UserInterface {
-    explicit UserInterface(glm::u32 frameCount);
+    explicit UserInterface(size_t frameCount);
     ~UserInterface();
 
-    void setDeltaTime(float delta);
-    void setDisplaySize(const glm::ivec2& size);
-    void setDisplayScale(const glm::vec2& scale);
-    void setMousePosition(const glm::vec2& pos);
-    void setMousePressed(int button, bool flag);
-    void setKeyPressed(int button, bool flag);
+    void SetDeltaTime(float delta);
+    void SetDisplaySize(const glm::ivec2& size);
+    void SetDisplayScale(const glm::vec2& scale);
+    void SetMousePosition(const glm::vec2& pos);
+    void SetMousePressed(int button, bool flag);
+    void SetKeyPressed(int button, bool flag);
 
-    void begin();
-    void end();
-    void draw(CommandBuffer cmd);
+    void Draw(CommandBuffer cmd);
 
-    void AddInputCharacter(char ch);
+    void SetCurrentContext();
     auto WantCaptureMouse() -> bool;
-
+    void AddInputCharacter(char ch);
     void AddScrollMouse(float x, float y);
 
 private:
