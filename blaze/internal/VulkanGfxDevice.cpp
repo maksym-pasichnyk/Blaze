@@ -728,6 +728,8 @@ void VulkanGfxDevice::_createInstance(Display& display) {
     VULKAN_HPP_DEFAULT_DISPATCHER.init(dl.getProcAddress<PFN_vkGetInstanceProcAddr>("vkGetInstanceProcAddr"));
 
     auto extensions = display.getInstanceExtensions();
+    // portability
+    extensions.push_back(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
     extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
     extensions.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
 
@@ -744,6 +746,7 @@ void VulkanGfxDevice::_createInstance(Display& display) {
     };
 
     const auto instanceCreateInfo = vk::InstanceCreateInfo {
+		.flags = vk::InstanceCreateFlagBits::eEnumeratePortabilityKHR,
         .pApplicationInfo = &appInfo,
         .enabledLayerCount = std::size(enabledLayers),
         .ppEnabledLayerNames = std::data(enabledLayers),

@@ -14,6 +14,7 @@ FetchContent_Declare(range-v3
 )
 FetchContent_Declare(SPIRV-Cross
     GIT_REPOSITORY https://github.com/KhronosGroup/SPIRV-Cross.git
+    GIT_TAG main
 )
 FetchContent_Declare(optional
     GIT_REPOSITORY https://github.com/TartanLlama/optional.git
